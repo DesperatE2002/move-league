@@ -1,0 +1,620 @@
+// Prisma Schema for Move League
+// Database: PostgreSQL (NeonDB)
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Kullanıcı Rolleri: dancer, judge, instructor, studio, admin
+enum UserRole {
+  DANCER
+  JUDGE
+  INSTRUCTOR
+  STUDIO
+  ADMIN
+}
+
+// Battle Durumları
+enum BattleStatus {
+  PENDING          // Battle talebi gönderildi, karşı taraf bekliyor
+  CHALLENGER_ACCEPTED // Karşı taraf kabul etti, stüdyo seçimi yapılıyor
+  STUDIO_PENDING   // Stüdyo seçildi, stüdyo onayı bekleniyor
+  STUDIO_REJECTED  // Stüdyo reddetti
+  CONFIRMED        // Stüdyo onayladı, tarih/saat belirlendi
+  BATTLE_SCHEDULED // Battle planlandı, gerçekleşmeyi bekliyor
+  REJECTED         // Battle reddedildi
+  COMPLETED        // Battle tamamlandı
+  CANCELLED        // Battle iptal edildi
+}
+
+// Bildirim Tipleri
+enum NotificationType {
+  BATTLE_REQUEST      // Battle talebi geldi
+  BATTLE_ACCEPTED     // Battle kabul edildi
+  BATTLE_REJECTED     // Battle reddedildi
+  STUDIO_REQUEST      // Stüdyo talebi geldi
+  STUDIO_CONFIRMED    // Stüdyo onayladı
+  STUDIO_REJECTED     // Stüdyo reddetti
+  BATTLE_SCHEDULED    // Battle tarih/saat belirlendi
+  COMPETITION_INVITATION  // Yarışma takım daveti
+  INVITATION_ACCEPTED     // Davet kabul edildi
+  INVITATION_REJECTED     // Davet reddedildi
+  SONG_REVEALED          // Yarışma şarkısı açıklandı
+  GENERAL             // Genel bildirim
+}
+
+// Lig Sezon Durumu
+enum SeasonStatus {
+  UPCOMING    // Başlangıç bekliyor
+  ACTIVE      // Aktif sezon
+  COMPLETED   // Tamamlandı
+}
+
+// Takım Rolleri
+enum TeamMemberRole {
+  LEADER      // Takım kaptanı
+  MEMBER      // Normal üye
+  SUBSTITUTE  // Yedek üye
+}
+
+// Kullanıcı Modeli
+model User {
+  id            String   @id @default(cuid())
+  email         String   @unique
+  name          String
+  password      String   // Hashed
+  role          UserRole
+  avatar        String?
+  phone         String?
+  bio           String?
+  
+  // Dansçı özel alanları
+  danceStyles   String[] // ["hiphop", "breaking", etc.]
+  experience    Int?     // Yıl olarak
+  rating        Int      @default(1200) // Battle ELO puanı
+  badges        String[] @default([]) // Kazanılan rozetler
+  
+  // Stüdyo özel alanları
+  studioName    String?
+  address       String?
+  capacity      Int?
+  facilities    String[] // ["sound system", "mirrors", etc.]
+  pricePerHour  Float?
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  // İlişkiler
+  initiatedBattles    BattleRequest[] @relation("Initiator")
+  challengedBattles   BattleRequest[] @relation("Challenged")
+  notifications       Notification[]
+  studioPreferences   StudioPreference[]
+  studio              Studio?
+  createdWorkshops    Workshop[] @relation("WorkshopInstructor")
+  workshopEnrollments WorkshopEnrollment[] @relation("WorkshopEnrollments")
+  teamMemberships     TeamMember[]
+  
+  // Move Show İlişkileri
+  ledTeams            CompetitionTeam[] @relation("TeamLeader")
+  competitionMemberships CompetitionTeamMember[] @relation("TeamMember")
+  sentInvitations     CompetitionInvitation[] @relation("InvitationSender")
+  receivedInvitations CompetitionInvitation[] @relation("InvitationReceiver")
+  
+  @@index([email])
+  @@index([role])
+  @@index([rating])
+}
+
+// Battle Talebi
+model BattleRequest {
+  id              String        @id @default(cuid())
+  
+  // Taraflar
+  initiatorId     String
+  initiator       User          @relation("Initiator", fields: [initiatorId], references: [id], onDelete: Cascade)
+  
+  challengedId    String
+  challenged      User          @relation("Challenged", fields: [challengedId], references: [id], onDelete: Cascade)
+  
+  // Battle Detayları
+  title           String?
+  category        String        // "hiphop", "breaking", etc.
+  description     String?
+  
+  status          BattleStatus  @default(PENDING)
+  
+  // Stüdyo seçimi (her iki tarafın da tercihleri)
+  selectedStudioId String?      // Sistem tarafından seçilen final stüdyo
+  selectedStudio   Studio?      @relation(fields: [selectedStudioId], references: [id])
+  
+  // Final Detaylar (stüdyo onayladıktan sonra)
+  scheduledDate   DateTime?
+  scheduledTime   String?       // "14:00"
+  location        String?       // Tam adres
+  duration        Int?          // Dakika olarak
+  
+  // Metadata
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  completedAt     DateTime?
+  
+  // İlişkiler
+  studioPreferences StudioPreference[]
+  notifications     Notification[]
+  
+  @@index([initiatorId])
+  @@index([challengedId])
+  @@index([status])
+  @@index([selectedStudioId])
+}
+
+// Stüdyo tercihleri (her dansçı için ayrı)
+model StudioPreference {
+  id              String         @id @default(cuid())
+  
+  battleRequestId String
+  battleRequest   BattleRequest  @relation(fields: [battleRequestId], references: [id], onDelete: Cascade)
+  
+  userId          String
+  user            User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  studioId        String
+  studio          Studio         @relation(fields: [studioId], references: [id], onDelete: Cascade)
+  
+  priority        Int            // 1, 2, 3 (1 = en yüksek öncelik)
+  
+  createdAt       DateTime       @default(now())
+  
+  @@unique([battleRequestId, userId, studioId])
+  @@index([battleRequestId])
+  @@index([userId])
+}
+
+// Stüdyo Modeli
+model Studio {
+  id              String   @id @default(cuid())
+  userId          String   @unique // Studio rolündeki User ile ilişki
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  name            String
+  address         String
+  city            String
+  phone           String?
+  email           String?
+  
+  capacity        Int
+  pricePerHour    Float
+  
+  facilities      String[] // ["mirrors", "sound system", "air conditioning"]
+  photos          String[] // Photo URLs
+  
+  description     String?
+  
+  // Çalışma saatleri (JSON olarak)
+  workingHours    Json?    // {"monday": "09:00-22:00", ...}
+  
+  isActive        Boolean  @default(true)
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  // İlişkiler
+  battleRequests  BattleRequest[]
+  preferences     StudioPreference[]
+  notifications   Notification[]
+  
+  @@index([city])
+  @@index([isActive])
+}
+
+// Bildirimler
+model Notification {
+  id              String            @id @default(cuid())
+  
+  userId          String
+  user            User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  type            NotificationType
+  title           String
+  message         String
+  
+  // İlgili battle (varsa)
+  battleRequestId String?
+  battleRequest   BattleRequest?    @relation(fields: [battleRequestId], references: [id], onDelete: Cascade)
+  
+  // İlgili stüdyo (varsa)
+  studioId        String?
+  studio          Studio?           @relation(fields: [studioId], references: [id], onDelete: Cascade)
+  
+  isRead          Boolean           @default(false)
+  
+  createdAt       DateTime          @default(now())
+  
+  @@index([userId, isRead])
+  @@index([createdAt])
+}
+
+// Workshop Modeli
+model Workshop {
+  id              String   @id @default(cuid())
+  title           String
+  
+  // Eğitmen
+  instructorId    String
+  instructor      User     @relation("WorkshopInstructor", fields: [instructorId], references: [id], onDelete: Cascade)
+  
+  // Workshop Detayları
+  category        String   // "hiphop", "breaking", "contemporary", etc.
+  level           String   // "beginner", "intermediate", "advanced"
+  description     String
+  requirements    String?  // Ön gereksinimler
+  
+  // Video
+  videoUrl        String?  // Workshop tanıtım/örnek video URL'i
+  thumbnailUrl    String?  // Video kapak görseli
+  
+  // Tarih ve Süre
+  scheduledDate   DateTime
+  scheduledTime   String   // "14:00"
+  duration        Int      // Dakika olarak
+  
+  // Yer ve Kapasite
+  location        String   // Stüdyo adı veya adres
+  address         String?  // Detaylı adres
+  capacity        Int      // Maksimum katılımcı sayısı
+  currentParticipants Int @default(0)
+  
+  // Fiyat
+  price           Float    // Workshop ücreti
+  
+  // Durum
+  isActive        Boolean  @default(true)
+  isCancelled     Boolean  @default(false)
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  // İlişkiler
+  enrollments     WorkshopEnrollment[]
+  
+  @@index([instructorId])
+  @@index([scheduledDate])
+  @@index([isActive])
+  @@index([category])
+}
+
+// Workshop Kayıtları (Dansçıların katılımı)
+model WorkshopEnrollment {
+  id              String   @id @default(cuid())
+  
+  workshopId      String
+  workshop        Workshop @relation(fields: [workshopId], references: [id], onDelete: Cascade)
+  
+  userId          String
+  user            User     @relation("WorkshopEnrollments", fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Ödeme
+  isPaid          Boolean  @default(false)
+  paidAmount      Float?
+  paymentDate     DateTime?
+  
+  // Katılım
+  isAttended      Boolean  @default(false)
+  
+  enrolledAt      DateTime @default(now())
+  
+  @@unique([workshopId, userId])
+  @@index([workshopId])
+  @@index([userId])
+}
+
+// Move Show Yarışması
+model Competition {
+  id              String   @id @default(cuid())
+  name            String
+  type            String   @default("SHOW") // SHOW, BATTLE, etc.
+  
+  // Tarihler
+  eventDate       DateTime // Yarışma tarihi (25.10.2025 21:00)
+  registrationStart DateTime // Kayıt başlangıç (20.10.2025)
+  registrationEnd DateTime // Kayıt bitiş (24.10.2025)
+  songRevealDate  DateTime // Şarkı açıklama tarihi (24.10.2025)
+  
+  // Yer
+  location        String
+  address         String?
+  venue           String? // La Noche gibi mekan adı
+  
+  description     String
+  rules           String? // Yarışma kuralları
+  
+  // Şarkı (1 gün kala açıklanacak)
+  songTitle       String?
+  songArtist      String?
+  songUrl         String? // Spotify/YouTube link
+  songRevealed    Boolean  @default(false)
+  
+  // Takım gereksinimleri
+  minTeamMembers  Int      @default(4)
+  maxTeamMembers  Int      @default(8)
+  maxTeams        Int      // Maksimum takım sayısı
+  
+  // Ödüller
+  prizeFirst      Float?
+  prizeSecond     Float?
+  prizeThird      Float?
+  
+  // Hakemler
+  judgeCount      Int      @default(3)
+  judges          String[] // Judge user ID'leri
+  
+  // Durum
+  status          String   @default("UPCOMING") // UPCOMING, REGISTRATION_OPEN, REGISTRATION_CLOSED, SONG_REVEALED, ONGOING, COMPLETED
+  isActive        Boolean  @default(true)
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  // İlişkiler
+  teams           CompetitionTeam[]
+  
+  @@index([eventDate])
+  @@index([status])
+  @@index([isActive])
+}
+
+// Yarışma Takımları
+model CompetitionTeam {
+  id              String      @id @default(cuid())
+  
+  competitionId   String
+  competition     Competition @relation(fields: [competitionId], references: [id], onDelete: Cascade)
+  
+  // Takım bilgileri
+  name            String
+  leaderId        String      // Eğitmen (takım lideri)
+  leader          User        @relation("TeamLeader", fields: [leaderId], references: [id])
+  
+  // Performans
+  performanceOrder Int?       // Sahne sırası
+  finalScore      Float?      // Final puanı
+  rank            Int?        // Sıralama
+  
+  // Durum
+  status          String      @default("FORMING") // FORMING, CONFIRMED, PERFORMED, DISQUALIFIED
+  isApproved      Boolean     @default(false) // Admin onayı
+  
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  
+  // İlişkiler
+  members         CompetitionTeamMember[]
+  invitations     CompetitionInvitation[]
+  
+  @@unique([competitionId, name])
+  @@index([competitionId])
+  @@index([leaderId])
+}
+
+// Takım Üyeleri
+model CompetitionTeamMember {
+  id              String          @id @default(cuid())
+  
+  teamId          String
+  team            CompetitionTeam @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  
+  userId          String
+  user            User            @relation("TeamMember", fields: [userId], references: [id])
+  
+  role            String          @default("MEMBER") // LEADER, MEMBER, SUBSTITUTE
+  joinedAt        DateTime        @default(now())
+  
+  @@unique([teamId, userId])
+  @@index([teamId])
+  @@index([userId])
+}
+
+// Takım Davetleri
+model CompetitionInvitation {
+  id              String          @id @default(cuid())
+  
+  teamId          String
+  team            CompetitionTeam @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  
+  senderId        String          // Davet gönderen (eğitmen)
+  sender          User            @relation("InvitationSender", fields: [senderId], references: [id])
+  
+  receiverId      String          // Davet alan (dansçı)
+  receiver        User            @relation("InvitationReceiver", fields: [receiverId], references: [id])
+  
+  message         String?         // Davet mesajı
+  status          String          @default("PENDING") // PENDING, ACCEPTED, REJECTED
+  
+  createdAt       DateTime        @default(now())
+  respondedAt     DateTime?
+  
+  @@index([teamId])
+  @@index([receiverId, status])
+  @@index([senderId])
+}
+
+// ===== LİG SİSTEMLERİ =====
+
+// 1. Battle Ligi (Bireysel ELO Puanı Bazlı)
+model BattleLeagueSeason {
+  id              String        @id @default(cuid())
+  name            String        // "2025 Bahar Sezonu"
+  description     String?
+  
+  startDate       DateTime
+  endDate         DateTime
+  status          SeasonStatus  @default(UPCOMING)
+  
+  // Ödüller
+  prizeFirst      Float?
+  prizeSecond     Float?
+  prizeThird      Float?
+  
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  
+  // İlişkiler
+  rankings        BattleLeagueRanking[]
+  
+  @@index([status])
+  @@index([startDate])
+}
+
+// Battle Ligi Sıralaması (Anlık sıralama tablosu)
+model BattleLeagueRanking {
+  id              String               @id @default(cuid())
+  
+  seasonId        String
+  season          BattleLeagueSeason   @relation(fields: [seasonId], references: [id], onDelete: Cascade)
+  
+  userId          String
+  // user relationship olmayabilir (manual rank girişi için)
+  
+  // Dansçı bilgileri (snapshot)
+  dancerName      String
+  dancerAvatar    String?
+  danceStyle      String
+  
+  // İstatistikler
+  rating          Int                  // ELO puanı
+  totalBattles    Int                  @default(0)
+  wins            Int                  @default(0)
+  losses          Int                  @default(0)
+  draws           Int                  @default(0)
+  winRate         Float                @default(0) // Yüzde olarak
+  
+  rank            Int                  // 1, 2, 3, ...
+  
+  lastUpdated     DateTime             @default(now())
+  
+  @@unique([seasonId, userId])
+  @@index([seasonId, rank])
+  @@index([seasonId, rating])
+}
+
+// 2. Takım Ligi (Show Yarışmaları)
+model TeamLeagueSeason {
+  id              String        @id @default(cuid())
+  name            String        // "2025 Show Battle Championship"
+  description     String?
+  
+  startDate       DateTime
+  endDate         DateTime
+  status          SeasonStatus  @default(UPCOMING)
+  
+  // Kurallar
+  minTeamMembers  Int           @default(4)
+  maxTeamMembers  Int           @default(8)
+  
+  // Ödüller
+  prizeFirst      Float?
+  prizeSecond     Float?
+  prizeThird      Float?
+  
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  
+  // İlişkiler
+  teams           Team[]
+  matches         TeamMatch[]
+  
+  @@index([status])
+  @@index([startDate])
+}
+
+// Takım Modeli
+model Team {
+  id              String             @id @default(cuid())
+  name            String             @unique
+  logo            String?            // Logo URL
+  motto           String?            // Takım sloganı
+  
+  seasonId        String
+  season          TeamLeagueSeason   @relation(fields: [seasonId], references: [id], onDelete: Cascade)
+  
+  // İstatistikler
+  points          Int                @default(0) // Toplam puan
+  wins            Int                @default(0)
+  losses          Int                @default(0)
+  draws           Int                @default(0)
+  totalScore      Float              @default(0) // Toplam hakem puanı
+  
+  rank            Int?               // Ligteki sıra
+  
+  isActive        Boolean            @default(true)
+  
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+  
+  // İlişkiler
+  members         TeamMember[]
+  homeMatches     TeamMatch[]        @relation("HomeTeam")
+  awayMatches     TeamMatch[]        @relation("AwayTeam")
+  
+  @@index([seasonId, rank])
+  @@index([seasonId, points])
+}
+
+// Takım Üyeleri
+model TeamMember {
+  id              String           @id @default(cuid())
+  
+  teamId          String
+  team            Team             @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  
+  userId          String
+  user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  role            TeamMemberRole   @default(MEMBER)
+  joinedAt        DateTime         @default(now())
+  
+  @@unique([teamId, userId])
+  @@index([teamId])
+  @@index([userId])
+}
+
+// Takım Maçları
+model TeamMatch {
+  id              String             @id @default(cuid())
+  
+  seasonId        String
+  season          TeamLeagueSeason   @relation(fields: [seasonId], references: [id], onDelete: Cascade)
+  
+  homeTeamId      String
+  homeTeam        Team               @relation("HomeTeam", fields: [homeTeamId], references: [id])
+  
+  awayTeamId      String
+  awayTeam        Team               @relation("AwayTeam", fields: [awayTeamId], references: [id])
+  
+  // Maç detayları
+  scheduledDate   DateTime
+  location        String?
+  
+  // Sonuçlar
+  homeScore       Float?             // Hakem puanı
+  awayScore       Float?             // Hakem puanı
+  winner          String?            // "home", "away", "draw"
+  
+  status          String             @default("scheduled") // scheduled, completed, cancelled
+  
+  // Hakemler
+  judges          String[]           // Judge ID'leri
+  
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+  
+  @@index([seasonId])
+  @@index([scheduledDate])
+  @@index([homeTeamId])
+  @@index([awayTeamId])
+}
