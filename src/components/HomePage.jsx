@@ -19,6 +19,7 @@ import CompetitionCreateForm from './CompetitionCreateForm';
 import CompetitionDetail from './CompetitionDetail';
 import TeamCreate from './TeamCreate';
 import DancerInvitations from './DancerInvitations';
+import AdminPanel from './AdminPanel';
 import { authApi } from '@/lib/api-client';
 
 /**
@@ -34,7 +35,38 @@ const HomePage = ({ user = "Admin" }) => {
   const [selectedBattleId, setSelectedBattleId] = React.useState(null);
   const [selectedWorkshopId, setSelectedWorkshopId] = React.useState(null);
   const [selectedCompetitionId, setSelectedCompetitionId] = React.useState(null);
+  const [stats, setStats] = React.useState({
+    battles: 0,
+    users: 0,
+    workshops: 0,
+    competitions: 0
+  });
   const currentUser = authApi.getCurrentUser();
+
+  // İstatistikleri yükle
+  React.useEffect(() => {
+    loadStats();
+  }, []);
+
+  const loadStats = async () => {
+    try {
+      const [battlesRes, usersRes, workshopsRes, competitionsRes] = await Promise.all([
+        fetch('/api/battles').then(r => r.json()).catch(() => ({ data: [] })),
+        fetch('/api/users').then(r => r.json()).catch(() => ({ data: [] })),
+        fetch('/api/workshops').then(r => r.json()).catch(() => ({ data: [] })),
+        fetch('/api/competitions').then(r => r.json()).catch(() => ({ data: [] }))
+      ]);
+
+      setStats({
+        battles: battlesRes.data?.length || 0,
+        users: usersRes.data?.length || 0,
+        workshops: workshopsRes.data?.length || 0,
+        competitions: competitionsRes.data?.length || 0
+      });
+    } catch (err) {
+      console.error('İstatistik yükleme hatası:', err);
+    }
+  };
 
   const handleLogout = () => {
     if (window.confirm('Çıkış yapmak istediğinize emin misiniz?')) {
@@ -168,12 +200,15 @@ const HomePage = ({ user = "Admin" }) => {
   if (activeSection === 'dancer-invitations') {
     return <DancerInvitations onBackClick={handleBack} />;
   }
+  if (activeSection === 'admin-panel') {
+    return <AdminPanel onBack={handleBack} />;
+  }
 
-  const stats = [
-    { label: "Aktif Battle", value: "12", icon: "⚔️", action: 'active-battles' },
-    { label: "Kayıtlı Dansçı", value: "124", icon: "💃", action: 'registered-users' },
-    { label: "Workshop", value: "5", icon: "🎓", action: 'workshops' },
-    { label: "Yarışma", value: "3", icon: "🏆", action: 'competition' }
+  const statsCards = [
+    { label: "Aktif Battle", value: stats.battles.toString(), icon: "⚔️", action: 'active-battles' },
+    { label: "Kayıtlı Kullanıcı", value: stats.users.toString(), icon: "💃", action: 'registered-users' },
+    { label: "Workshop", value: stats.workshops.toString(), icon: "🎓", action: 'workshops' },
+    { label: "Yarışma", value: stats.competitions.toString(), icon: "🏆", action: 'competition' }
   ];
 
   const menuItems = [
@@ -210,7 +245,16 @@ const HomePage = ({ user = "Admin" }) => {
       color: "#34C759",
       badge: "3",
       action: 'competitions-view'
-    }
+    },
+    ...(currentUser?.role === 'ADMIN' ? [{
+      id: "admin",
+      title: "👑 Admin Paneli", 
+      desc: "Battle yönetimi ve hakem ataması", 
+      icon: "⚙️", 
+      color: "#DC2626",
+      badge: "Admin",
+      action: 'admin-panel'
+    }] : [])
   ];
 
   return (
@@ -271,7 +315,7 @@ const HomePage = ({ user = "Admin" }) => {
 
           {/* Stats Grid */}
           <section className="stats-grid animate-fade-delay">
-            {stats.map((stat, index) => (
+            {statsCards.map((stat, index) => (
               <div 
                 key={index} 
                 className="stat-card"
