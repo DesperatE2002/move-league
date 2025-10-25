@@ -20,6 +20,7 @@ import CompetitionDetail from './CompetitionDetail';
 import TeamCreate from './TeamCreate';
 import DancerInvitations from './DancerInvitations';
 import AdminPanel from './AdminPanel';
+import RefereePanel from './RefereePanel';
 import { authApi } from '@/lib/api-client';
 
 /**
@@ -216,6 +217,9 @@ const HomePage = ({ user = "Admin" }) => {
   if (activeSection === 'admin-panel') {
     return <AdminPanel onBack={handleBack} />;
   }
+  if (activeSection === 'referee-panel') {
+    return <RefereePanel onBack={handleBack} />;
+  }
 
   const statsCards = [
     { label: "Aktif Battle", value: stats.battles.toString(), icon: "⚔️", action: 'active-battles' },
@@ -267,6 +271,15 @@ const HomePage = ({ user = "Admin" }) => {
       color: "#DC2626",
       badge: "Admin",
       action: 'admin-panel'
+    }] : []),
+    ...(currentUser?.role === 'REFEREE' ? [{
+      id: "referee",
+      title: "⚖️ Hakem Paneli", 
+      desc: "Battle puanlama ve kazanan belirleme", 
+      icon: "🎯", 
+      color: "#8B5CF6",
+      badge: "Hakem",
+      action: 'referee-panel'
     }] : [])
   ];
 

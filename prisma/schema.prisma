@@ -94,6 +94,7 @@ model User {
   initiatedBattles    BattleRequest[] @relation("Initiator")
   challengedBattles   BattleRequest[] @relation("Challenged")
   refereeBattles      BattleRequest[] @relation("BattleReferee")
+  wonBattles          BattleRequest[] @relation("BattleWinner")
   notifications       Notification[]
   studioPreferences   StudioPreference[]
   studio              Studio?
@@ -143,6 +144,11 @@ model BattleRequest {
   // Hakem Ataması (Admin tarafından)
   refereeId       String?
   referee         User?         @relation("BattleReferee", fields: [refereeId], references: [id])
+  
+  // Puanlama ve Sonuç
+  scores          Json?         // {"initiator": {...}, "challenged": {...}}
+  winnerId        String?       // Kazanan dansçı ID
+  winner          User?         @relation("BattleWinner", fields: [winnerId], references: [id])
   
   // Metadata
   createdAt       DateTime      @default(now())

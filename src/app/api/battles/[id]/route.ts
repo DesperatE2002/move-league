@@ -310,6 +310,83 @@ export async function PATCH(
         return successResponse(updatedBattle, 'Hakem başarıyla atandı');
       }
 
+      case 'SUBMIT_SCORES': {
+        // Hakem puanlama sistemi
+        if (currentUser.role !== 'REFEREE') {
+          return errorResponse('Sadece hakemler puanlama yapabilir', 403);
+        }
+
+        // Hakeme atanmış mı kontrol
+        if (battle.refereeId !== currentUser.id) {
+          return errorResponse('Bu battle\'a atanmış hakem değilsiniz', 403);
+        }
+
+        const { scores, winnerId } = body;
+        if (!scores || !scores.initiator || !scores.challenged) {
+          return errorResponse('Puanlar eksik', 400);
+        }
+
+        // Kazanan kontrolü
+        let finalWinnerId = winnerId;
+        if (!winnerId) {
+          // Beraberlik durumu - status COMPLETED olacak ama kazanan olmayacak
+          finalWinnerId = null;
+        } else {
+          // Kazananın battle katılımcısı olduğunu kontrol et
+          if (winnerId !== battle.initiatorId && winnerId !== battle.challengedId) {
+            return errorResponse('Geçersiz kazanan ID', 400);
+          }
+        }
+
+        // Battle'ı güncelle - puanları ve kazananı kaydet
+        const updatedBattle = await prisma.battleRequest.update({
+          where: { id: battleId },
+          data: {
+            status: 'COMPLETED',
+            winnerId: finalWinnerId,
+            scores: scores, // JSON olarak kaydedilecek
+            completedAt: new Date(),
+          },
+          include: {
+            initiator: { select: { id: true, name: true, email: true } },
+            challenged: { select: { id: true, name: true, email: true } },
+            referee: { select: { id: true, name: true, email: true } },
+            winner: { select: { id: true, name: true, email: true } },
+          },
+        });
+
+        // Katılımcılara bildirim gönder
+        const winnerName = finalWinnerId 
+          ? (finalWinnerId === battle.initiatorId ? battle.initiator.name : battle.challenged.name)
+          : 'Berabere';
+
+        await Promise.all([
+          prisma.notification.create({
+            data: {
+              userId: battle.initiatorId,
+              type: 'BATTLE',
+              title: 'Battle Tamamlandı',
+              message: `${battle.initiator.name} vs ${battle.challenged.name} battle'ı puanlandı. Kazanan: ${winnerName}`,
+              battleRequestId: battleId,
+            },
+          }),
+          prisma.notification.create({
+            data: {
+              userId: battle.challengedId,
+              type: 'BATTLE',
+              title: 'Battle Tamamlandı',
+              message: `${battle.initiator.name} vs ${battle.challenged.name} battle'ı puanlandı. Kazanan: ${winnerName}`,
+              battleRequestId: battleId,
+            },
+          }),
+        ]);
+
+        // Kazanan varsa puan güncelle (opsiyonel - gelecekte liga sistemi için)
+        // TODO: Battle kazananın puanını artır
+
+        return successResponse(updatedBattle, 'Puanlama başarıyla kaydedildi');
+      }
+
       default:
         return errorResponse('Geçersiz action', 400);
     }
