@@ -35,11 +35,21 @@ const AdminPanel = ({ onBack }) => {
       setBattles(battlesResponse.data || []);
 
       // Hakemleri yükle
-      const usersResponse = await fetch('/api/users?role=REFEREE');
+      const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+      const usersResponse = await fetch('/api/users?role=REFEREE', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
       if (usersResponse.ok) {
         const data = await usersResponse.json();
+        console.log('🔍 Referees Response:', data);
         console.log('🔍 Referees Data:', data.data);
         setReferees(data.data || []);
+      } else {
+        console.error('❌ Referees fetch failed:', usersResponse.status);
       }
 
       console.log('✅ Admin panel verileri yüklendi');
