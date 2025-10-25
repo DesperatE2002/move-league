@@ -61,9 +61,9 @@ const RefereePanel = ({ onBack }) => {
       
       // Sadece hakeme atanan battle'ları filtrele
       const myBattles = (response.data || []).filter(b => {
-        console.log(`🔍 Battle ${b.id}: refereeId=${b.refereeId}, currentUserId=${currentUser?.id}, match=${b.refereeId === currentUser?.id}`);
+        console.log(`🔍 Battle ${b.id}: refereeId=${b.refereeId}, currentUserId=${currentUser?.id}, status=${b.status}, match=${b.refereeId === currentUser?.id}`);
         return b.refereeId === currentUser?.id && 
-               ['CONFIRMED', 'BATTLE_SCHEDULED'].includes(b.status);
+               ['CONFIRMED', 'BATTLE_SCHEDULED', 'STUDIO_PENDING'].includes(b.status);
       });
       
       setBattles(myBattles);
