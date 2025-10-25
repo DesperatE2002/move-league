@@ -34,12 +34,12 @@ export async function POST(request) {
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Create user
+    // Create user - role'ü uppercase'e çevir
     const userData = {
       email,
       password: hashedPassword,
       name,
-      role,
+      role: role.toUpperCase(), // DANCER, INSTRUCTOR, STUDIO formatına çevir
       danceStyles: danceStyles || [],
       ...(role === 'studio' && studioName && { studioName })
     };
