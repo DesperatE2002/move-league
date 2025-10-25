@@ -14,10 +14,14 @@ const RegisteredUsersView = ({ onBackClick }) => {
   const loadUsers = async () => {
     try {
       setLoading(true);
+      console.log('🔄 RegisteredUsersView: Kullanıcılar yükleniyor...');
       const data = await authApi.getAllUsers();
+      console.log('✅ RegisteredUsersView: API yanıtı:', data);
+      console.log('📊 RegisteredUsersView: Kullanıcı sayısı:', data.users?.length || 0);
       setUsers(data.users || []);
     } catch (error) {
-      console.error('Error loading users:', error);
+      console.error('❌ RegisteredUsersView: Kullanıcı yükleme hatası:', error);
+      alert('Kullanıcılar yüklenemedi: ' + error.message);
     } finally {
       setLoading(false);
     }
