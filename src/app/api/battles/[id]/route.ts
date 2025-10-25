@@ -70,6 +70,19 @@ export async function PATCH(
           return errorResponse('Bu battle\'ı reddetme yetkiniz yok', 403);
         }
 
+        // Battle'ı reddedeni cezalandır (-10 puan)
+        // Eğer meydan okunan red ediyorsa, sadece o ceza alır
+        if (currentUser.userId === battle.challengedId) {
+          await prisma.user.update({
+            where: { id: battle.challengedId },
+            data: {
+              rating: {
+                decrement: 10
+              }
+            }
+          });
+        }
+
         const updatedBattle = await prisma.battleRequest.update({
           where: { id: battleId },
           data: { status: 'REJECTED' },
@@ -77,12 +90,14 @@ export async function PATCH(
 
         // Bildirim gönder
         const notifyUserId = currentUser.userId === battle.initiatorId ? battle.challengedId : battle.initiatorId;
+        const rejecterName = currentUser.userId === battle.initiatorId ? battle.initiator.name : battle.challenged.name;
+        
         await prisma.notification.create({
           data: {
             userId: notifyUserId,
             type: 'BATTLE_REJECTED',
             title: 'Battle Reddedildi',
-            message: `Battle talebiniz reddedildi.`,
+            message: `${rejecterName} battle'ı reddetti${currentUser.userId === battle.challengedId ? ' ve -10 puan kaybetti' : ''}.`,
             battleRequestId: battleId,
           },
         });
@@ -360,13 +375,53 @@ export async function PATCH(
           ? (finalWinnerId === battle.initiatorId ? battle.initiator.name : battle.challenged.name)
           : 'Berabere';
 
+        // Rating güncellemeleri
+        // Kazanan: +20, Beraberlik: +10, Kaybeden: -10
+        if (finalWinnerId) {
+          // Kazanan var
+          const loserId = finalWinnerId === battle.initiatorId ? battle.challengedId : battle.initiatorId;
+          
+          await Promise.all([
+            // Kazanan +20
+            prisma.user.update({
+              where: { id: finalWinnerId },
+              data: {
+                rating: { increment: 20 }
+              }
+            }),
+            // Kaybeden -10
+            prisma.user.update({
+              where: { id: loserId },
+              data: {
+                rating: { decrement: 10 }
+              }
+            })
+          ]);
+        } else {
+          // Beraberlik - Her ikisi de +10
+          await Promise.all([
+            prisma.user.update({
+              where: { id: battle.initiatorId },
+              data: {
+                rating: { increment: 10 }
+              }
+            }),
+            prisma.user.update({
+              where: { id: battle.challengedId },
+              data: {
+                rating: { increment: 10 }
+              }
+            })
+          ]);
+        }
+
         await Promise.all([
           prisma.notification.create({
             data: {
               userId: battle.initiatorId,
               type: 'BATTLE',
               title: 'Battle Tamamlandı',
-              message: `${battle.initiator.name} vs ${battle.challenged.name} battle'ı puanlandı. Kazanan: ${winnerName}`,
+              message: `${battle.initiator.name} vs ${battle.challenged.name} battle'ı puanlandı. Kazanan: ${winnerName}. Rating ${finalWinnerId === battle.initiatorId ? '+20' : finalWinnerId ? '-10' : '+10'}`,
               battleRequestId: battleId,
             },
           }),
@@ -375,14 +430,11 @@ export async function PATCH(
               userId: battle.challengedId,
               type: 'BATTLE',
               title: 'Battle Tamamlandı',
-              message: `${battle.initiator.name} vs ${battle.challenged.name} battle'ı puanlandı. Kazanan: ${winnerName}`,
+              message: `${battle.initiator.name} vs ${battle.challenged.name} battle'ı puanlandı. Kazanan: ${winnerName}. Rating ${finalWinnerId === battle.challengedId ? '+20' : finalWinnerId ? '-10' : '+10'}`,
               battleRequestId: battleId,
             },
           }),
         ]);
-
-        // Kazanan varsa puan güncelle (opsiyonel - gelecekte liga sistemi için)
-        // TODO: Battle kazananın puanını artır
 
         return successResponse(updatedBattle, 'Puanlama başarıyla kaydedildi');
       }
