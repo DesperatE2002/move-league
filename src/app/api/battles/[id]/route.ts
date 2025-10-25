@@ -332,7 +332,7 @@ export async function PATCH(
         }
 
         // Hakeme atanmış mı kontrol
-        if (battle.refereeId !== currentUser.id) {
+        if (battle.refereeId !== currentUser.userId) {
           return errorResponse('Bu battle\'a atanmış hakem değilsiniz', 403);
         }
 
