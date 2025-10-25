@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { authApi } from '@/lib/api-client';
+import { apiRequest } from '@/lib/api-client';
 
 const RegisteredUsersView = ({ onBackClick }) => {
   const [users, setUsers] = useState([]);
@@ -15,7 +15,7 @@ const RegisteredUsersView = ({ onBackClick }) => {
     try {
       setLoading(true);
       console.log('🔄 RegisteredUsersView: Kullanıcılar yükleniyor...');
-      const data = await authApi.getAllUsers();
+      const data = await apiRequest('/users/all');
       console.log('✅ RegisteredUsersView: API yanıtı:', data);
       console.log('📊 RegisteredUsersView: Kullanıcı sayısı:', data.users?.length || 0);
       setUsers(data.users || []);
