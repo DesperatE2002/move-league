@@ -54,23 +54,21 @@ const RefereePanel = ({ onBack }) => {
     try {
       setLoading(true);
       console.log('🔍 Current User:', currentUser);
-      console.log('🔍 User ID:', currentUser.userId);
-      console.log('🔍 User ID (alternative):', currentUser.id);
+      console.log('🔍 User ID:', currentUser?.id);
       
       const response = await battlesApi.getBattles();
-      console.log('📦 All battles response:', response);
-      console.log('📦 Battles data:', response.data);
+      console.log('📦 All battles:', response.data);
       
       // Sadece hakeme atanan battle'ları filtrele
       const myBattles = (response.data || []).filter(b => {
-        console.log(`🔍 Battle ${b.id}: refereeId=${b.refereeId}, userId=${currentUser.userId}, id=${currentUser.id}`);
-        return b.refereeId === currentUser.userId && 
+        console.log(`🔍 Battle ${b.id}: refereeId=${b.refereeId}, currentUserId=${currentUser?.id}, match=${b.refereeId === currentUser?.id}`);
+        return b.refereeId === currentUser?.id && 
                ['CONFIRMED', 'BATTLE_SCHEDULED'].includes(b.status);
       });
       
       setBattles(myBattles);
       console.log('✅ Hakem battle\'ları yüklendi:', myBattles.length);
-      console.log('📋 Hakem battles:', myBattles);
+      console.log('📋 Filtrelenmiş battles:', myBattles);
     } catch (err) {
       console.error('❌ Battle yükleme hatası:', err);
       alert('Battle\'lar yüklenemedi: ' + err.message);
