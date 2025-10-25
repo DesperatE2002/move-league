@@ -265,6 +265,51 @@ export async function PATCH(
         return successResponse({ success: true }, 'Battle stüdyo tarafından reddedildi');
       }
 
+      case 'ASSIGN_REFEREE': {
+        // Admin hakem ataması
+        if (currentUser.role !== 'ADMIN') {
+          return errorResponse('Sadece admin hakem atayabilir', 403);
+        }
+
+        const { refereeId } = body;
+        if (!refereeId) {
+          return errorResponse('Hakem ID gerekli', 400);
+        }
+
+        // Hakem kontrolü
+        const referee = await prisma.user.findUnique({
+          where: { id: refereeId },
+        });
+
+        if (!referee || referee.role !== 'REFEREE') {
+          return errorResponse('Geçerli bir hakem seçiniz', 400);
+        }
+
+        // Battle'a hakem ata
+        const updatedBattle = await prisma.battleRequest.update({
+          where: { id: battleId },
+          data: { refereeId: refereeId },
+          include: {
+            initiator: { select: { id: true, name: true, email: true } },
+            challenged: { select: { id: true, name: true, email: true } },
+            referee: { select: { id: true, name: true, email: true } },
+          },
+        });
+
+        // Hakeme bildirim gönder
+        await prisma.notification.create({
+          data: {
+            userId: refereeId,
+            type: 'GENERAL',
+            title: 'Hakem Görevlendirildiniz',
+            message: `${battle.initiator.name} vs ${battle.challenged.name} battle'ına hakem olarak atandınız.`,
+            battleRequestId: battleId,
+          },
+        });
+
+        return successResponse(updatedBattle, 'Hakem başarıyla atandı');
+      }
+
       default:
         return errorResponse('Geçersiz action', 400);
     }

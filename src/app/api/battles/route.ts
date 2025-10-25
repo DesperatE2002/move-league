@@ -21,8 +21,15 @@ export async function GET(request: NextRequest) {
 
     let where: any;
 
+    // Admin ise TÜM battle'ları göster
+    if (currentUser.role === 'ADMIN') {
+      where = {};
+      if (status) {
+        where.status = status;
+      }
+    }
     // Stüdyo ise, kendi stüdyosuna ait battle'ları göster
-    if (currentUser.role === 'STUDIO') {
+    else if (currentUser.role === 'STUDIO') {
       // Stüdyo kaydını bul
       const studio = await prisma.studio.findUnique({
         where: { userId: currentUser.userId },
@@ -78,6 +85,13 @@ export async function GET(request: NextRequest) {
             name: true,
             address: true,
             city: true,
+          },
+        },
+        referee: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
           },
         },
       },

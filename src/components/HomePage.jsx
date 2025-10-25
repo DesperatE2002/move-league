@@ -50,12 +50,25 @@ const HomePage = ({ user = "Admin" }) => {
 
   const loadStats = async () => {
     try {
+      const token = localStorage.getItem('token');
+      const headers = {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      };
+
       const [battlesRes, usersRes, workshopsRes, competitionsRes] = await Promise.all([
-        fetch('/api/battles').then(r => r.json()).catch(() => ({ data: [] })),
-        fetch('/api/users').then(r => r.json()).catch(() => ({ data: [] })),
-        fetch('/api/workshops').then(r => r.json()).catch(() => ({ data: [] })),
-        fetch('/api/competitions').then(r => r.json()).catch(() => ({ data: [] }))
+        fetch('/api/battles', { headers }).then(r => r.json()).catch(() => ({ data: [] })),
+        fetch('/api/users', { headers }).then(r => r.json()).catch(() => ({ data: [] })),
+        fetch('/api/workshops', { headers }).then(r => r.json()).catch(() => ({ data: [] })),
+        fetch('/api/competitions', { headers }).then(r => r.json()).catch(() => ({ data: [] }))
       ]);
+
+      console.log('📊 Stats loaded:', {
+        battles: battlesRes.data?.length,
+        users: usersRes.data?.length,
+        workshops: workshopsRes.data?.length,
+        competitions: competitionsRes.data?.length
+      });
 
       setStats({
         battles: battlesRes.data?.length || 0,
