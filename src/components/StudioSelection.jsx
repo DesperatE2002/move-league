@@ -40,12 +40,6 @@ const StudioSelection = ({ battleId, onBack, onComplete }) => {
       return;
     }
 
-    // Maksimum 3 stüdyo seçilebilir
-    if (selectedStudios.length >= 3) {
-      alert('En fazla 3 stüdyo seçebilirsiniz!');
-      return;
-    }
-
     // Yeni stüdyoyu ekle, priority otomatik (sıradaki numara)
     setSelectedStudios([...selectedStudios, {
       id: studio.id,
@@ -152,7 +146,7 @@ const StudioSelection = ({ battleId, onBack, onComplete }) => {
         {/* Sol Panel - Seçilen Stüdyolar */}
         <div className="selected-panel">
           <div className="panel-header">
-            <h2>Seçilen Stüdyolar ({selectedStudios.length}/3)</h2>
+            <h2>Seçilen Stüdyolar ({selectedStudios.length})</h2>
           </div>
 
           {selectedStudios.length === 0 ? (
@@ -199,7 +193,7 @@ const StudioSelection = ({ battleId, onBack, onComplete }) => {
             </div>
           )}
 
-          {selectedStudios.length >= 3 && (
+          {selectedStudios.length >= 1 && (
             <button
               className="submit-btn"
               onClick={handleSubmit}
