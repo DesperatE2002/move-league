@@ -50,6 +50,28 @@ const RefereePanel = ({ onBack }) => {
     loadBattles();
   }, []);
 
+  // selectedBattle değiştiğinde scores'u sıfırla
+  useEffect(() => {
+    if (selectedBattle) {
+      setScores({
+        initiator: {
+          technique: 0,
+          creativity: 0,
+          performance: 0,
+          musicality: 0,
+          choreography: 0,
+        },
+        challenged: {
+          technique: 0,
+          creativity: 0,
+          performance: 0,
+          musicality: 0,
+          choreography: 0,
+        }
+      });
+    }
+  }, [selectedBattle?.id]); // selectedBattle.id değiştiğinde tetikle
+
   const loadBattles = async () => {
     try {
       setLoading(true);
