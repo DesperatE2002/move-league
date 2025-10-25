@@ -30,12 +30,15 @@ const AdminPanel = ({ onBack }) => {
       
       // Battle'ları yükle (onay bekleyenler ve aktif olanlar)
       const battlesResponse = await battlesApi.getBattles();
+      console.log('🔍 Admin Panel - Battles Response:', battlesResponse);
+      console.log('🔍 Battles Data:', battlesResponse.data);
       setBattles(battlesResponse.data || []);
 
       // Hakemleri yükle
       const usersResponse = await fetch('/api/users?role=REFEREE');
       if (usersResponse.ok) {
         const data = await usersResponse.json();
+        console.log('🔍 Referees Data:', data.data);
         setReferees(data.data || []);
       }
 
