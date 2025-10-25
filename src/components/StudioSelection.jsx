@@ -81,8 +81,8 @@ const StudioSelection = ({ battleId, onBack, onComplete }) => {
   };
 
   const handleSubmit = async () => {
-    if (selectedStudios.length < 3) {
-      alert('Lütfen en az 3 stüdyo seçin!');
+    if (selectedStudios.length < 1) {
+      alert('Lütfen en az 1 stüdyo seçin!');
       return;
     }
 
@@ -131,7 +131,7 @@ const StudioSelection = ({ battleId, onBack, onComplete }) => {
       <div className="info-banner">
         <div className="info-icon">ℹ️</div>
         <div className="info-text">
-          <strong>En az 3 stüdyo seçin ve öncelik sıralaması yapın</strong>
+          <strong>En az 1 stüdyo seçin ve öncelik sıralaması yapın</strong>
           <p>Rakibinizle ortak olan ve en yüksek önceliğe sahip stüdyo battle için seçilecek.</p>
         </div>
       </div>
@@ -159,7 +159,7 @@ const StudioSelection = ({ battleId, onBack, onComplete }) => {
             <div className="empty-selection">
               <div className="empty-icon">🏢</div>
               <p>Henüz stüdyo seçmediniz</p>
-              <small>Sağdaki listeden en az 3 stüdyo seçin</small>
+              <small>Sağdaki listeden en az 1 stüdyo seçin</small>
             </div>
           ) : (
             <div className="selected-list">

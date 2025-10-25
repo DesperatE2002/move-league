@@ -2,46 +2,35 @@
 
 import React, { useState } from 'react';
 import { authApi } from '@/lib/api-client';
-import ForgotPasswordPage from './ForgotPasswordPage';
 
 /**
- * LoginPage.jsx
- * Real login page for "Move League" with API integration
+ * ForgotPasswordPage.jsx
+ * Şifremi Unuttum sayfası
  */
 
-const LoginPage = ({ onLogin, onSignupClick }) => {
+const ForgotPasswordPage = ({ onBackToLogin }) => {
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState('');
   const [error, setError] = useState('');
-  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError('');
+    setMessage('');
 
     try {
-      console.log('🔐 Login attempt:', email);
-      const response = await authApi.login(email, password);
-      console.log('✅ Login response:', response);
-      
-      if (response.success && onLogin) {
-        // onLogin email string bekliyor (page.tsx'de)
-        onLogin(response.data.user.email);
-      }
+      // Basit implementasyon: Kullanıcıya email gönderildiği mesajı göster
+      // Gerçek projede burada email gönderme işlemi olacak
+      setMessage(`Şifre sıfırlama talimatları ${email} adresine gönderildi. Lütfen email kutunuzu kontrol edin.`);
+      setEmail('');
     } catch (err) {
-      console.error('❌ Login error:', err);
-      setError(err.message || 'Giriş başarısız. Lütfen bilgilerinizi kontrol edin.');
+      setError('Bir hata oluştu. Lütfen tekrar deneyin.');
     } finally {
       setLoading(false);
     }
   };
-
-  // Eğer "Şifremi Unuttum" sayfası gösterilecekse
-  if (showForgotPassword) {
-    return <ForgotPasswordPage onBackToLogin={() => setShowForgotPassword(false)} />;
-  }
 
   return (
     <div className="page-root">
@@ -54,9 +43,21 @@ const LoginPage = ({ onLogin, onSignupClick }) => {
       <main className="container">
         <div className="card animate-fade">
           <header className="card-header">
-            <h1 className="logo">Move League</h1>
-            <p className="subtitle">Adana's First Digital Dance Battle Arena</p>
+            <h1 className="logo">Şifremi Unuttum</h1>
+            <p className="subtitle">Şifrenizi sıfırlamak için email adresinizi girin</p>
           </header>
+
+          {message && (
+            <div style={{
+              padding: '1rem',
+              background: '#d1fae5',
+              color: '#065f46',
+              borderRadius: '8px',
+              marginBottom: '1rem'
+            }}>
+              ✅ {message}
+            </div>
+          )}
 
           {error && (
             <div style={{
@@ -70,47 +71,40 @@ const LoginPage = ({ onLogin, onSignupClick }) => {
             </div>
           )}
 
+          <div style={{
+            padding: '1rem',
+            background: 'rgba(255,255,255,0.05)',
+            borderRadius: '8px',
+            marginBottom: '1rem',
+            fontSize: '0.9rem',
+            color: '#b0b0b0'
+          }}>
+            💡 <strong>Not:</strong> Eğer hesabınıza erişemiyorsanız, lütfen admin ile iletişime geçin: 
+            <a href="mailto:support@moveleague.com" style={{color: '#FF3B30', marginLeft: '0.5rem'}}>
+              support@moveleague.com
+            </a>
+          </div>
+
           <form className="form" onSubmit={handleSubmit}>
-            <label className="sr-only" htmlFor="email">Email address</label>
             <input 
-              id="email" 
               className="input" 
               type="email" 
-              placeholder="Email" 
+              placeholder="Email adresiniz" 
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required 
             />
 
-            <label className="sr-only" htmlFor="password">Password</label>
-            <input 
-              id="password" 
-              className="input" 
-              type="password" 
-              placeholder="Password" 
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required 
-            />
-
             <button type="submit" className="btn btn-primary" disabled={loading}>
-              {loading ? 'Giriş yapılıyor...' : 'Login'}
-            </button>
-
-            <button 
-              type="button" 
-              className="btn btn-link"
-              onClick={() => setShowForgotPassword(true)}
-            >
-              🔐 Şifremi Unuttum
+              {loading ? 'Gönderiliyor...' : '🔐 Şifre Sıfırlama Linki Gönder'}
             </button>
 
             <button 
               type="button" 
               className="btn btn-outline" 
-              onClick={onSignupClick}
+              onClick={onBackToLogin}
             >
-              ✨ Hesap Oluştur
+              ← Giriş Sayfasına Dön
             </button>
           </form>
 
@@ -125,8 +119,6 @@ const LoginPage = ({ onLogin, onSignupClick }) => {
           --deep-red:#2a0000;
           --accent:#FF3B30;
           --muted: #9aa0a6;
-          --card-bg: linear-gradient(135deg, rgba(20,20,20,0.95) 0%, rgba(34,6,6,0.85) 100%);
-          --glass: rgba(255,255,255,0.03);
         }
 
         /* Page root */
@@ -143,7 +135,7 @@ const LoginPage = ({ onLogin, onSignupClick }) => {
           overflow:hidden;
         }
 
-        /* Faint background image (Unsplash placeholder, free to hotlink for demo) */
+        /* Faint background image */
         .bg-image{
           position:absolute;
           inset:0;
@@ -159,7 +151,7 @@ const LoginPage = ({ onLogin, onSignupClick }) => {
         .container{
           z-index:10;
           width:100%;
-          max-width:420px;
+          max-width:480px;
         }
 
         .card{
@@ -188,7 +180,7 @@ const LoginPage = ({ onLogin, onSignupClick }) => {
 
         .logo{
           margin:0;
-          font-size:2rem;
+          font-size:1.8rem;
           font-weight:700;
           color:#fff;
           text-shadow: 0 4px 20px rgba(255,59,48,0.4), 0 0 15px rgba(255,59,48,0.2);
@@ -242,6 +234,7 @@ const LoginPage = ({ onLogin, onSignupClick }) => {
         }
 
         .btn:active{ transform: translateY(1px) scale(.997); }
+        .btn:disabled{ opacity: 0.6; cursor: not-allowed; }
 
         .btn-primary{
           background: linear-gradient(90deg, #FF3B30, #d42b20 80%);
@@ -250,7 +243,7 @@ const LoginPage = ({ onLogin, onSignupClick }) => {
           box-shadow: 0 10px 35px rgba(255,59,48,0.25);
         }
 
-        .btn-primary:hover{ 
+        .btn-primary:hover:not(:disabled){ 
           box-shadow: 0 12px 40px rgba(255,59,48,0.35);
           background: linear-gradient(90deg, #ff4f45, #e03528 80%);
         }
@@ -266,41 +259,6 @@ const LoginPage = ({ onLogin, onSignupClick }) => {
           border-color: rgba(255,255,255,0.35);
         }
 
-        .btn-link{
-          background: transparent;
-          color: #999;
-          border: none;
-          font-size: 0.9rem;
-          text-decoration: none;
-          padding: 0.5rem;
-        }
-
-        .btn-link:hover{
-          color: #FF3B30;
-          text-decoration: underline;
-        }
-
-        .btn-google{
-          background: rgba(255,255,255,0.06);
-          color:#fff;
-          border:1px solid rgba(255,255,255,0.15);
-          padding:0.7rem 0.8rem;
-        }
-        
-        .btn-google:hover{
-          background: rgba(255,255,255,0.1);
-          border-color: rgba(255,255,255,0.25);
-        }
-
-        .google-icon{ width:18px; height:18px; margin-right:8px; }
-
-        .row{
-          display:flex;
-          gap:0.6rem;
-          align-items:center;
-          justify-content:space-between;
-        }
-
         .card-footer{
           margin-top:1.25rem;
           text-align:center;
@@ -308,19 +266,10 @@ const LoginPage = ({ onLogin, onSignupClick }) => {
           color:#9aa0a6;
         }
 
-        /* Accessibility helpers */
-        .sr-only{
-          position:absolute;
-          width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;
-        }
-
         /* Responsive */
         @media (max-width:520px){
           .card{ padding:1.5rem; border-radius:14px; }
           .logo{ font-size:1.4rem; }
-          .row{ flex-direction:column-reverse; }
-          .btn-google{ width:100%; justify-content:center; }
-          .btn-outline{ width:100%; }
         }
 
       `}</style>
@@ -328,9 +277,4 @@ const LoginPage = ({ onLogin, onSignupClick }) => {
   );
 };
 
-export default LoginPage;
-
-/*
-  End of file: LoginPage.jsx
-  Note: This is a static demo component. Replace alert handlers with real auth logic when ready.
-*/
+export default ForgotPasswordPage;

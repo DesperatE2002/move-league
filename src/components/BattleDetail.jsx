@@ -239,7 +239,7 @@ const BattleDetail = ({ battleId, onBack }) => {
         {battle.status === 'CHALLENGER_ACCEPTED' && (
           <div className="studio-selection-section">
             <h3>✅ Battle Kabul Edildi!</h3>
-            <p>Şimdi her iki taraf da en az 3 stüdyo seçmeli ve öncelik sıralaması yapmalı. Ortak olan ve en yüksek önceliğe sahip stüdyo seçilecek.</p>
+            <p>Şimdi her iki taraf da en az 1 stüdyo seçmeli ve öncelik sıralaması yapmalı. Ortak olan ve en yüksek önceliğe sahip stüdyo seçilecek.</p>
             <button
               className="btn-select-studios"
               onClick={() => {

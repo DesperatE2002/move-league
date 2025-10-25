@@ -57,6 +57,23 @@ export async function POST(request) {
       }
     });
 
+    // Eğer STUDIO rolünde kayıt olduysa, otomatik Studio profili oluştur
+    if (role.toUpperCase() === 'STUDIO') {
+      await prisma.studio.create({
+        data: {
+          userId: user.id,
+          name: studioName || `${name} Studio`,
+          description: 'Stüdyo açıklaması eklenecek',
+          address: 'Adres bilgisi eklenecek',
+          city: 'Adana',
+          capacity: 20,
+          facilities: [],
+          pricePerHour: 0,
+          isActive: true,
+        }
+      });
+    }
+
     // Generate JWT token
     const token = jwt.sign(
       { userId: user.id, email: user.email, role: user.role },
