@@ -10,13 +10,14 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// Kullanıcı Rolleri: dancer, judge, instructor, studio, admin
+// Kullanıcı Rolleri: dancer, judge, instructor, studio, admin, referee
 enum UserRole {
   DANCER
   JUDGE
   INSTRUCTOR
   STUDIO
   ADMIN
+  REFEREE
 }
 
 // Battle Durumları
@@ -92,6 +93,7 @@ model User {
   // İlişkiler
   initiatedBattles    BattleRequest[] @relation("Initiator")
   challengedBattles   BattleRequest[] @relation("Challenged")
+  refereeBattles      BattleRequest[] @relation("BattleReferee")
   notifications       Notification[]
   studioPreferences   StudioPreference[]
   studio              Studio?
@@ -137,6 +139,10 @@ model BattleRequest {
   scheduledTime   String?       // "14:00"
   location        String?       // Tam adres
   duration        Int?          // Dakika olarak
+  
+  // Hakem Ataması (Admin tarafından)
+  refereeId       String?
+  referee         User?         @relation("BattleReferee", fields: [refereeId], references: [id])
   
   // Metadata
   createdAt       DateTime      @default(now())

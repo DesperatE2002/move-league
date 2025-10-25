@@ -204,6 +204,16 @@ const SignupPage = ({ onSignup, onBackToLogin }) => {
                   />
                   <span>🏢 Stüdyo</span>
                 </label>
+                <label className={`role-option ${formData.role === 'referee' ? 'selected' : ''}`}>
+                  <input 
+                    type="radio" 
+                    name="role" 
+                    value="referee"
+                    checked={formData.role === 'referee'}
+                    onChange={handleInputChange}
+                  />
+                  <span>⚖️ Hakem</span>
+                </label>
               </div>
             </div>
 
