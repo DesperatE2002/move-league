@@ -80,7 +80,7 @@ const SignupPage = ({ onSignup, onBackToLogin }) => {
         email: formData.email,
         password: formData.password,
         name: formData.name,
-        role: formData.role,
+        role: formData.role.toUpperCase(), // DANCER, INSTRUCTOR, STUDIO formatında gönder
         danceStyles: formData.danceStyles,
         ...(formData.role === 'studio' && { studioName: formData.studioName })
       };
