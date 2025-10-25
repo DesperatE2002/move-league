@@ -419,7 +419,7 @@ export async function PATCH(
             prisma.notification.create({
               data: {
                 userId: battle.initiatorId,
-                type: 'BATTLE',
+                type: 'GENERAL',
                 title: 'Battle Tamamlandı',
                 message: `${battle.initiator.name} vs ${battle.challenged.name} battle'ı puanlandı. Kazanan: ${winnerName}. Rating ${finalWinnerId === battle.initiatorId ? '+20' : finalWinnerId ? '-10' : '+10'}`,
                 battleRequestId: battleId,
@@ -428,7 +428,7 @@ export async function PATCH(
             prisma.notification.create({
               data: {
                 userId: battle.challengedId,
-                type: 'BATTLE',
+                type: 'GENERAL',
                 title: 'Battle Tamamlandı',
                 message: `${battle.initiator.name} vs ${battle.challenged.name} battle'ı puanlandı. Kazanan: ${winnerName}. Rating ${finalWinnerId === battle.challengedId ? '+20' : finalWinnerId ? '-10' : '+10'}`,
                 battleRequestId: battleId,
