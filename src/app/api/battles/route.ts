@@ -28,6 +28,15 @@ export async function GET(request: NextRequest) {
         where.status = status;
       }
     }
+    // Hakem ise, hakem olarak atandığı battle'ları göster
+    else if (currentUser.role === 'REFEREE') {
+      where = {
+        refereeId: currentUser.userId,
+      };
+      if (status) {
+        where.status = status;
+      }
+    }
     // Stüdyo ise, kendi stüdyosuna ait battle'ları göster
     else if (currentUser.role === 'STUDIO') {
       // Stüdyo kaydını bul
