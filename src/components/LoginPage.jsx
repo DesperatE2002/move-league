@@ -36,11 +36,6 @@ const LoginPage = ({ onLogin, onSignupClick }) => {
     }
   };
 
-  const fillDancer1 = () => {
-    setEmail('dancer1@test.com');
-    setPassword('password123');
-  };
-
   return (
     <div className="page-root">
       <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -55,38 +50,6 @@ const LoginPage = ({ onLogin, onSignupClick }) => {
             <h1 className="logo">Move League</h1>
             <p className="subtitle">Adana's First Digital Dance Battle Arena</p>
           </header>
-
-          <div className="demo-credentials">
-            <p className="demo-title">🔑 Test Hesap Bilgileri</p>
-            <div className="demo-info">
-              <div><strong>Dancer 1:</strong> dancer1@test.com</div>
-              <div><strong>Şifre:</strong> password123</div>
-              <button 
-                type="button" 
-                onClick={fillDancer1} 
-                style={{
-                  marginTop: '0.5rem',
-                  padding: '0.3rem 0.8rem',
-                  background: '#dc2626',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '4px',
-                  cursor: 'pointer',
-                  fontSize: '0.85rem'
-                }}
-              >
-                Otomatik Doldur
-              </button>
-            </div>
-            <div className="demo-info" style={{marginTop: '0.5rem'}}>
-              <div><strong>Dancer 2:</strong> dancer2@test.com</div>
-              <div><strong>Şifre:</strong> password123</div>
-            </div>
-            <div className="demo-info" style={{marginTop: '0.5rem'}}>
-              <div><strong>Studio:</strong> studio1@test.com</div>
-              <div><strong>Şifre:</strong> password123</div>
-            </div>
-          </div>
 
           {error && (
             <div style={{
@@ -134,8 +97,6 @@ const LoginPage = ({ onLogin, onSignupClick }) => {
             >
               ✨ Hesap Oluştur
             </button>
-
-            <p className="demo-note">Gerçek API ile çalışıyor! Test hesaplarını kullanın.</p>
           </form>
 
           <footer className="card-footer">© 2025 Move League — Powered by Berkay Şimşek</footer>
@@ -226,34 +187,6 @@ const LoginPage = ({ onLogin, onSignupClick }) => {
           font-weight:300;
         }
 
-        /* Demo credentials box */
-        .demo-credentials{
-          background: rgba(255,59,48,0.08);
-          border: 1px solid rgba(255,59,48,0.25);
-          border-radius:10px;
-          padding:1rem;
-          margin-bottom:1rem;
-        }
-
-        .demo-title{
-          margin:0 0 0.6rem;
-          font-size:0.85rem;
-          font-weight:600;
-          color:#fff;
-          text-align:center;
-        }
-
-        .demo-info{
-          font-size:0.8rem;
-          color:#e0e0e0;
-          line-height:1.6;
-        }
-
-        .demo-info strong{
-          color:#FF3B30;
-          font-weight:600;
-        }
-
         /* Form */
         .form{
           display:flex;
@@ -337,13 +270,6 @@ const LoginPage = ({ onLogin, onSignupClick }) => {
           gap:0.6rem;
           align-items:center;
           justify-content:space-between;
-        }
-
-        .demo-note{
-          margin:0.5rem 0 0;
-          font-size:0.78rem;
-          color:var(--muted);
-          text-align:center;
         }
 
         .card-footer{
