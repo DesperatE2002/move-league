@@ -21,25 +21,37 @@ const ProfilePage = ({ currentUser, onBackClick }) => {
   const loadProfileData = async () => {
     try {
       setLoading(true);
+      console.log('🔄 ProfilePage: loadProfileData başladı');
       
       // Fresh user data çek (güncel rating için)
       const token = localStorage.getItem('token');
+      console.log('🔑 Token var mı?', !!token);
+      
       if (token) {
+        console.log('📡 /api/auth/me çağrılıyor...');
         const response = await fetch('/api/auth/me', {
           headers: {
             'Authorization': `Bearer ${token}`
           }
         });
         
+        console.log('📥 Response status:', response.status);
+        
         if (response.ok) {
           const data = await response.json();
+          console.log('✅ API yanıtı:', data);
+          
           if (data.success && data.user) {
+            console.log('⭐ Yeni rating:', data.user.rating);
             setUser(data.user);
             // localStorage'daki user'ı da güncelle
             const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
             const updatedUser = { ...storedUser, rating: data.user.rating };
             localStorage.setItem('user', JSON.stringify(updatedUser));
+            console.log('💾 localStorage güncellendi');
           }
+        } else {
+          console.error('❌ API hatası:', response.status);
         }
       }
       
@@ -48,9 +60,10 @@ const ProfilePage = ({ currentUser, onBackClick }) => {
       setEnrolledWorkshops(workshopsData.workshops || []);
       
     } catch (error) {
-      console.error('Error loading profile data:', error);
+      console.error('❌ ProfilePage error:', error);
     } finally {
       setLoading(false);
+      console.log('✅ loadProfileData tamamlandı');
     }
   };
 

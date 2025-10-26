@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Move League API Test</title>
+    <style>
+        body {
+            font-family: monospace;
+            padding: 20px;
+            background: #0a0a0a;
+            color: #00ff00;
+        }
+        .section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #333;
+            background: #111;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            background: #dc2626;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        button:hover {
+            background: #991b1b;
+        }
+        pre {
+            background: #000;
+            padding: 10px;
+            overflow: auto;
+            max-height: 400px;
+        }
+        input {
+            padding: 8px;
+            width: 300px;
+            margin: 5px;
+            background: #222;
+            color: #0f0;
+            border: 1px solid #333;
+        }
+        .success { color: #00ff00; }
+        .error { color: #ff0000; }
+    </style>
+</head>
+<body>
+    <h1>🔍 Move League API Test</h1>
+    
+    <div class="section">
+        <h3>1. Login</h3>
+        <input type="text" id="email" placeholder="Email" value="miray@mleague.com">
+        <input type="password" id="password" placeholder="Password" value="123456">
+        <br>
+        <button onclick="login()">Login</button>
+        <pre id="loginResult"></pre>
+    </div>
+
+    <div class="section">
+        <h3>2. Get Current User (/api/auth/me)</h3>
+        <button onclick="getCurrentUser()">Get Me</button>
+        <pre id="meResult"></pre>
+    </div>
+
+    <div class="section">
+        <h3>3. Battle League (/api/leagues/battle)</h3>
+        <button onclick="getBattleLeague()">Get League</button>
+        <pre id="leagueResult"></pre>
+    </div>
+
+    <div class="section">
+        <h3>4. Active Battles</h3>
+        <button onclick="getActiveBattles()">Get Active Battles</button>
+        <pre id="battlesResult"></pre>
+    </div>
+
+    <div class="section">
+        <h3>5. All Users</h3>
+        <button onclick="getAllUsers()">Get All Users</button>
+        <pre id="usersResult"></pre>
+    </div>
+
+    <script>
+        const API_BASE = 'https://move-league-d.vercel.app/api';
+        let token = localStorage.getItem('token');
+
+        async function login() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const result = document.getElementById('loginResult');
+            
+            try {
+                const response = await fetch(`${API_BASE}/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+                
+                const data = await response.json();
+                result.className = response.ok ? 'success' : 'error';
+                result.textContent = JSON.stringify(data, null, 2);
+                
+                if (data.success && data.token) {
+                    token = data.token;
+                    localStorage.setItem('token', token);
+                    result.textContent += '\n\n✅ Token saved!';
+                }
+            } catch (error) {
+                result.className = 'error';
+                result.textContent = '❌ Error: ' + error.message;
+            }
+        }
+
+        async function getCurrentUser() {
+            const result = document.getElementById('meResult');
+            
+            if (!token) {
+                result.className = 'error';
+                result.textContent = '❌ No token! Please login first.';
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE}/auth/me`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                const data = await response.json();
+                result.className = response.ok ? 'success' : 'error';
+                result.textContent = JSON.stringify(data, null, 2);
+                
+                if (data.success && data.user) {
+                    result.textContent += `\n\n📊 Rating: ${data.user.rating}`;
+                }
+            } catch (error) {
+                result.className = 'error';
+                result.textContent = '❌ Error: ' + error.message;
+            }
+        }
+
+        async function getBattleLeague() {
+            const result = document.getElementById('leagueResult');
+            
+            if (!token) {
+                result.className = 'error';
+                result.textContent = '❌ No token! Please login first.';
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE}/leagues/battle`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                const data = await response.json();
+                result.className = response.ok ? 'success' : 'error';
+                result.textContent = JSON.stringify(data, null, 2);
+                
+                if (data.success && data.rankings) {
+                    result.textContent += `\n\n📊 Total Rankings: ${data.rankings.length}`;
+                }
+            } catch (error) {
+                result.className = 'error';
+                result.textContent = '❌ Error: ' + error.message;
+            }
+        }
+
+        async function getActiveBattles() {
+            const result = document.getElementById('battlesResult');
+            
+            if (!token) {
+                result.className = 'error';
+                result.textContent = '❌ No token! Please login first.';
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE}/battles/active`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                const data = await response.json();
+                result.className = response.ok ? 'success' : 'error';
+                result.textContent = JSON.stringify(data, null, 2);
+            } catch (error) {
+                result.className = 'error';
+                result.textContent = '❌ Error: ' + error.message;
+            }
+        }
+
+        async function getAllUsers() {
+            const result = document.getElementById('usersResult');
+            
+            if (!token) {
+                result.className = 'error';
+                result.textContent = '❌ No token! Please login first.';
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE}/users/all`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                const data = await response.json();
+                result.className = response.ok ? 'success' : 'error';
+                result.textContent = JSON.stringify(data, null, 2);
+            } catch (error) {
+                result.className = 'error';
+                result.textContent = '❌ Error: ' + error.message;
+            }
+        }
+    </script>
+</body>
+</html>
