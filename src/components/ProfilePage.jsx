@@ -55,10 +55,6 @@ const ProfilePage = ({ currentUser, onBackClick }) => {
         }
       }
       
-      // Get user's enrolled workshops
-      const workshopsData = await authApi.getEnrolledWorkshops();
-      setEnrolledWorkshops(workshopsData.workshops || []);
-      
     } catch (error) {
       console.error('❌ ProfilePage error:', error);
     } finally {
