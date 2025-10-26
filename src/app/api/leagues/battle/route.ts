@@ -39,6 +39,7 @@ export async function GET(request: Request) {
 
     // Sıralamayı formatla
     const rankings = dancers.map((dancer, index) => ({
+      id: dancer.id,
       rank: index + 1,
       userId: dancer.id,
       name: dancer.name,
@@ -55,7 +56,9 @@ export async function GET(request: Request) {
       success: true,
       season: {
         name: 'Move League 2025',
-        description: 'ELO puanına göre genel sıralama'
+        description: 'ELO puanına göre genel sıralama',
+        startDate: new Date('2025-01-01'),
+        endDate: new Date('2025-12-31')
       },
       rankings
     });

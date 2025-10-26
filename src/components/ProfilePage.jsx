@@ -22,6 +22,27 @@ const ProfilePage = ({ currentUser, onBackClick }) => {
     try {
       setLoading(true);
       
+      // Fresh user data çek (güncel rating için)
+      const token = localStorage.getItem('token');
+      if (token) {
+        const response = await fetch('/api/auth/me', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success && data.user) {
+            setUser(data.user);
+            // localStorage'daki user'ı da güncelle
+            const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
+            const updatedUser = { ...storedUser, rating: data.user.rating };
+            localStorage.setItem('user', JSON.stringify(updatedUser));
+          }
+        }
+      }
+      
       // Get user's enrolled workshops
       const workshopsData = await authApi.getEnrolledWorkshops();
       setEnrolledWorkshops(workshopsData.workshops || []);
