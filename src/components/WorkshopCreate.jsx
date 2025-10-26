@@ -84,12 +84,7 @@ const WorkshopCreate = ({ onBack, onSuccess }) => {
   };
 
   return (
-    <div style={{ 
-      minHeight: '100vh',
-      background: 'linear-gradient(135deg, #000000 0%, #1a0505 100%)',
-      fontFamily: "'Poppins', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif"
-    }}>
-      <div className="workshop-create">
+    <div className="workshop-create">
       <button className="btn-back" onClick={onBack}>← Geri</button>
 
       <div className="form-container">
@@ -271,6 +266,9 @@ const WorkshopCreate = ({ onBack, onSuccess }) => {
 
       <style jsx>{`
         .workshop-create {
+          min-height: 100vh;
+          background: linear-gradient(135deg, #000000 0%, #1a0505 100%);
+          font-family: 'Poppins', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
           padding: 2rem;
           max-width: 800px;
           margin: 0 auto;
@@ -368,7 +366,6 @@ const WorkshopCreate = ({ onBack, onSuccess }) => {
           cursor: not-allowed;
         }
       `}</style>
-    </div>
     </div>
   );
 };
