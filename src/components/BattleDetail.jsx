@@ -141,8 +141,8 @@ const BattleDetail = ({ battleId, onBack }) => {
 
         {/* Battle Info */}
         <div className="battle-header">
-          <h2 className="battle-title">{battle.title}</h2>
-          <p className="battle-category">🎵 {battle.category}</p>
+          <h2 className="battle-title">Battle</h2>
+          <p className="battle-category">🎵 Dans Stili: {battle.danceStyle}</p>
         </div>
 
         {/* Fighters */}

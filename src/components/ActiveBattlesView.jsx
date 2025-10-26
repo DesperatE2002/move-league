@@ -275,17 +275,17 @@ const ActiveBattlesView = ({ onBackClick }) => {
                   {status.text}
                 </div>
 
-                {/* Title */}
+                {/* Title & Dance Style */}
                 <h3 style={{
                   fontSize: '20px',
                   fontWeight: 'bold',
                   marginBottom: '15px',
                   color: 'white'
                 }}>
-                  {battle.title}
+                  Battle
                 </h3>
 
-                {/* Category */}
+                {/* Dance Style */}
                 <div style={{
                   display: 'inline-block',
                   background: 'rgba(220,38,38,0.2)',
@@ -295,7 +295,7 @@ const ActiveBattlesView = ({ onBackClick }) => {
                   fontSize: '12px',
                   marginBottom: '15px'
                 }}>
-                  {battle.category}
+                  🎵 {battle.danceStyle}
                 </div>
 
                 {/* Fighters */}

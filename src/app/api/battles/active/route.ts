@@ -17,11 +17,11 @@ export async function GET(request: NextRequest) {
       return errorResponse('Invalid token', 401);
     }
 
-    // Get all active battles that are confirmed by studio (BATTLE_SCHEDULED or COMPLETED status)
+    // Get all active battles that are confirmed by studio (CONFIRMED status)
     const battles = await prisma.battleRequest.findMany({
       where: {
         status: {
-          in: ['BATTLE_SCHEDULED', 'COMPLETED']
+          in: ['CONFIRMED', 'BATTLE_SCHEDULED', 'COMPLETED']
         }
       },
       include: {
