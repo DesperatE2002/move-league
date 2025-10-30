@@ -9,6 +9,7 @@ const BattleDetail = ({ battleId, onBack }) => {
   const [actionLoading, setActionLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [showScores, setShowScores] = useState(false);
   const currentUser = authApi.getCurrentUser();
 
   useEffect(() => {
@@ -289,7 +290,134 @@ const BattleDetail = ({ battleId, onBack }) => {
         {battle.status === 'COMPLETED' && (
           <div className="info-section completed">
             <h4>🏁 Battle Tamamlandı</h4>
-            <p>Bu battle tamamlanmıştır.</p>
+            {battle.winner && (
+              <div className="winner-announcement">
+                <p className="winner-text">🏆 Kazanan: <strong>{battle.winner.name}</strong></p>
+              </div>
+            )}
+            {battle.scores && (
+              <button 
+                className="btn-view-scores"
+                onClick={() => setShowScores(true)}
+              >
+                📊 Puanları Görüntüle
+              </button>
+            )}
+          </div>
+        )}
+
+        {/* Scores Modal */}
+        {showScores && battle.scores && (
+          <div className="modal-overlay" onClick={() => setShowScores(false)}>
+            <div className="modal-content scores-modal" onClick={(e) => e.stopPropagation()}>
+              <div className="modal-header">
+                <h2>📊 Battle Puanları</h2>
+                <button className="modal-close" onClick={() => setShowScores(false)}>✕</button>
+              </div>
+              
+              <div className="scores-container">
+                {/* Initiator Scores */}
+                <div className="participant-scores">
+                  <div className="participant-header" style={{ borderColor: '#dc2626' }}>
+                    <div className="participant-avatar">
+                      {battle.initiator.name.charAt(0).toUpperCase()}
+                    </div>
+                    <h3>{battle.initiator.name}</h3>
+                    <span className="participant-label">Meydan Okuyan</span>
+                  </div>
+                  
+                  {battle.scores.initiator && (
+                    <div className="score-breakdown">
+                      <div className="score-item">
+                        <span className="score-label">⚡ Teknik</span>
+                        <span className="score-value">{battle.scores.initiator.technique || 0}/10</span>
+                      </div>
+                      <div className="score-item">
+                        <span className="score-label">🎨 Yaratıcılık</span>
+                        <span className="score-value">{battle.scores.initiator.creativity || 0}/10</span>
+                      </div>
+                      <div className="score-item">
+                        <span className="score-label">🔥 Performans</span>
+                        <span className="score-value">{battle.scores.initiator.performance || 0}/10</span>
+                      </div>
+                      <div className="score-item">
+                        <span className="score-label">🎵 Müzikalite</span>
+                        <span className="score-value">{battle.scores.initiator.musicality || 0}/10</span>
+                      </div>
+                      <div className="score-item">
+                        <span className="score-label">💫 Koreografi</span>
+                        <span className="score-value">{battle.scores.initiator.choreography || 0}/10</span>
+                      </div>
+                      <div className="score-total">
+                        <span className="score-label">TOPLAM</span>
+                        <span className="score-value">
+                          {(battle.scores.initiator.technique || 0) + 
+                           (battle.scores.initiator.creativity || 0) + 
+                           (battle.scores.initiator.performance || 0) + 
+                           (battle.scores.initiator.musicality || 0) + 
+                           (battle.scores.initiator.choreography || 0)}/50
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* VS Divider */}
+                <div className="scores-vs">VS</div>
+
+                {/* Challenged Scores */}
+                <div className="participant-scores">
+                  <div className="participant-header" style={{ borderColor: '#3b82f6' }}>
+                    <div className="participant-avatar">
+                      {battle.challenged.name.charAt(0).toUpperCase()}
+                    </div>
+                    <h3>{battle.challenged.name}</h3>
+                    <span className="participant-label">Meydan Okunan</span>
+                  </div>
+                  
+                  {battle.scores.challenged && (
+                    <div className="score-breakdown">
+                      <div className="score-item">
+                        <span className="score-label">⚡ Teknik</span>
+                        <span className="score-value">{battle.scores.challenged.technique || 0}/10</span>
+                      </div>
+                      <div className="score-item">
+                        <span className="score-label">🎨 Yaratıcılık</span>
+                        <span className="score-value">{battle.scores.challenged.creativity || 0}/10</span>
+                      </div>
+                      <div className="score-item">
+                        <span className="score-label">🔥 Performans</span>
+                        <span className="score-value">{battle.scores.challenged.performance || 0}/10</span>
+                      </div>
+                      <div className="score-item">
+                        <span className="score-label">🎵 Müzikalite</span>
+                        <span className="score-value">{battle.scores.challenged.musicality || 0}/10</span>
+                      </div>
+                      <div className="score-item">
+                        <span className="score-label">💫 Koreografi</span>
+                        <span className="score-value">{battle.scores.challenged.choreography || 0}/10</span>
+                      </div>
+                      <div className="score-total">
+                        <span className="score-label">TOPLAM</span>
+                        <span className="score-value">
+                          {(battle.scores.challenged.technique || 0) + 
+                           (battle.scores.challenged.creativity || 0) + 
+                           (battle.scores.challenged.performance || 0) + 
+                           (battle.scores.challenged.musicality || 0) + 
+                           (battle.scores.challenged.choreography || 0)}/50
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {battle.referee && (
+                <div className="referee-info">
+                  <p>⚖️ Hakem: <strong>{battle.referee.name}</strong></p>
+                </div>
+              )}
+            </div>
           </div>
         )}
 
@@ -637,6 +765,251 @@ const BattleDetail = ({ battleId, onBack }) => {
           color: #ce93d8;
         }
 
+        .winner-announcement {
+          margin: 1.5rem 0;
+          padding: 1rem;
+          background: rgba(255, 215, 0, 0.1);
+          border: 2px solid rgba(255, 215, 0, 0.3);
+          border-radius: 8px;
+        }
+
+        .winner-text {
+          font-size: 1.3rem;
+          color: #ffd700;
+          margin: 0;
+        }
+
+        .winner-text strong {
+          color: white;
+          text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+        }
+
+        .btn-view-scores {
+          margin-top: 1rem;
+          padding: 0.75rem 1.5rem;
+          background: linear-gradient(135deg, #8b5cf6, #6366f1);
+          border: none;
+          border-radius: 8px;
+          color: white;
+          font-size: 1rem;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.3s;
+        }
+
+        .btn-view-scores:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 10px 30px rgba(139, 92, 246, 0.4);
+        }
+
+        .modal-overlay {
+          position: fixed;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background: rgba(0, 0, 0, 0.85);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          z-index: 1000;
+          padding: 1rem;
+          animation: fadeIn 0.3s ease-out;
+        }
+
+        .modal-content {
+          background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+          border: 2px solid rgba(255, 255, 255, 0.2);
+          border-radius: 16px;
+          max-width: 900px;
+          width: 100%;
+          max-height: 90vh;
+          overflow-y: auto;
+          animation: slideUp 0.3s ease-out;
+        }
+
+        .modal-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 1.5rem 2rem;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .modal-header h2 {
+          margin: 0;
+          font-size: 1.8rem;
+          color: white;
+        }
+
+        .modal-close {
+          background: rgba(255, 255, 255, 0.1);
+          border: none;
+          color: white;
+          font-size: 1.5rem;
+          width: 40px;
+          height: 40px;
+          border-radius: 50%;
+          cursor: pointer;
+          transition: all 0.3s;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .modal-close:hover {
+          background: rgba(220, 38, 38, 0.3);
+          transform: rotate(90deg);
+        }
+
+        .scores-container {
+          display: grid;
+          grid-template-columns: 1fr auto 1fr;
+          gap: 2rem;
+          padding: 2rem;
+          align-items: start;
+        }
+
+        .participant-scores {
+          background: rgba(255, 255, 255, 0.03);
+          border-radius: 12px;
+          padding: 1.5rem;
+        }
+
+        .participant-header {
+          text-align: center;
+          padding-bottom: 1rem;
+          border-bottom: 2px solid;
+          margin-bottom: 1.5rem;
+        }
+
+        .participant-avatar {
+          width: 80px;
+          height: 80px;
+          border-radius: 50%;
+          background: linear-gradient(135deg, #dc2626, #ef4444);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 2rem;
+          font-weight: 700;
+          color: white;
+          margin: 0 auto 1rem;
+        }
+
+        .participant-header h3 {
+          margin: 0 0 0.5rem 0;
+          font-size: 1.3rem;
+          color: white;
+        }
+
+        .participant-label {
+          font-size: 0.9rem;
+          color: rgba(255, 255, 255, 0.6);
+        }
+
+        .score-breakdown {
+          display: flex;
+          flex-direction: column;
+          gap: 1rem;
+        }
+
+        .score-item {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 0.75rem 1rem;
+          background: rgba(255, 255, 255, 0.05);
+          border-radius: 8px;
+          transition: all 0.3s;
+        }
+
+        .score-item:hover {
+          background: rgba(255, 255, 255, 0.08);
+          transform: translateX(5px);
+        }
+
+        .score-label {
+          font-size: 1rem;
+          color: rgba(255, 255, 255, 0.8);
+        }
+
+        .score-value {
+          font-size: 1.1rem;
+          font-weight: 700;
+          color: white;
+        }
+
+        .score-total {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 1rem;
+          background: linear-gradient(135deg, rgba(220, 38, 38, 0.2), rgba(139, 92, 246, 0.2));
+          border: 2px solid rgba(220, 38, 38, 0.3);
+          border-radius: 8px;
+          margin-top: 0.5rem;
+        }
+
+        .score-total .score-label {
+          font-size: 1.1rem;
+          font-weight: 700;
+          color: #ffd700;
+        }
+
+        .score-total .score-value {
+          font-size: 1.5rem;
+          font-weight: 900;
+          color: #ffd700;
+          text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+        }
+
+        .scores-vs {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 2rem;
+          font-weight: 900;
+          color: #dc2626;
+          text-shadow: 0 0 20px rgba(220, 38, 38, 0.5);
+        }
+
+        .referee-info {
+          padding: 1rem 2rem;
+          border-top: 1px solid rgba(255, 255, 255, 0.1);
+          text-align: center;
+        }
+
+        .referee-info p {
+          margin: 0;
+          color: rgba(255, 255, 255, 0.7);
+          font-size: 1rem;
+        }
+
+        .referee-info strong {
+          color: white;
+        }
+
+        @keyframes fadeIn {
+          from {
+            opacity: 0;
+          }
+          to {
+            opacity: 1;
+          }
+        }
+
+        @keyframes slideUp {
+          from {
+            opacity: 0;
+            transform: translateY(30px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
         .studio-selection-section {
           margin: 2rem 0;
           padding: 2rem;
@@ -713,6 +1086,31 @@ const BattleDetail = ({ battleId, onBack }) => {
 
           .btn-accept, .btn-reject {
             max-width: 100%;
+          }
+
+          .scores-container {
+            grid-template-columns: 1fr;
+          }
+
+          .scores-vs {
+            transform: rotate(90deg);
+            padding: 1rem 0;
+          }
+
+          .modal-content {
+            margin: 1rem;
+          }
+
+          .modal-header {
+            padding: 1rem;
+          }
+
+          .modal-header h2 {
+            font-size: 1.3rem;
+          }
+
+          .scores-container {
+            padding: 1rem;
           }
         }
       `}</style>
