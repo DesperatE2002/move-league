@@ -23,19 +23,23 @@ const ProfilePage = ({ currentUser, onBackClick }) => {
       setLoading(true);
       
       // Get fresh user data from API to get updated rating
+      console.log('🔄 ProfilePage: Fetching fresh user data...');
       const userData = await authApi.getCurrentUserFromAPI();
-      if (userData && userData.user) {
-        setUser(userData.user);
+      console.log('✅ ProfilePage: Fresh user data:', userData);
+      
+      if (userData && userData.data && userData.data.user) {
+        console.log('📊 ProfilePage: Updated rating:', userData.data.user.rating);
+        setUser(userData.data.user);
         // Also update localStorage
-        localStorage.setItem('user', JSON.stringify(userData.user));
+        localStorage.setItem('user', JSON.stringify(userData.data.user));
       }
       
       // Get user's enrolled workshops
       const workshopsData = await authApi.getEnrolledWorkshops();
-      setEnrolledWorkshops(workshopsData.workshops || []);
+      setEnrolledWorkshops(workshopsData.workshops || workshopsData.data?.workshops || []);
       
     } catch (error) {
-      console.error('Error loading profile data:', error);
+      console.error('❌ ProfilePage: Error loading profile data:', error);
     } finally {
       setLoading(false);
     }

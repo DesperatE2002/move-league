@@ -85,6 +85,17 @@ export const authApi = {
   getCurrentUserFromAPI: async () => {
     return apiRequest('/auth/me');
   },
+
+  getEnrolledWorkshops: () => {
+    return apiRequest('/workshops/enrolled');
+  },
+
+  changePassword: (currentPassword, newPassword) => {
+    return apiRequest('/profile/password', {
+      method: 'PATCH',
+      body: JSON.stringify({ currentPassword, newPassword }),
+    });
+  },
 };
 
 // Users API
@@ -165,18 +176,6 @@ export const studiosApi = {
   deleteStudio: (id) => {
     return apiRequest(`/studios/${id}`, {
       method: 'DELETE',
-    });
-  },
-
-  // Profile API
-  getEnrolledWorkshops: () => {
-    return apiRequest('/workshops/enrolled');
-  },
-
-  changePassword: (currentPassword, newPassword) => {
-    return apiRequest('/profile/password', {
-      method: 'PATCH',
-      body: JSON.stringify({ currentPassword, newPassword }),
     });
   },
 
