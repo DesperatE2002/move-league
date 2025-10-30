@@ -252,5 +252,64 @@ export const studiosApi = {
   },
 };
 
+// Admin API
+export const adminApi = {
+  // Rozet Yönetimi
+  assignBadge: (userId, badge) => {
+    return apiRequest('/admin/badges', {
+      method: 'POST',
+      body: JSON.stringify({ userId, badge, action: 'add' }),
+    });
+  },
+
+  removeBadge: (userId, badge) => {
+    return apiRequest('/admin/badges', {
+      method: 'POST',
+      body: JSON.stringify({ userId, badge, action: 'remove' }),
+    });
+  },
+
+  // Sezon Sıfırlama
+  resetSeason: (mode, seasonName) => {
+    return apiRequest('/admin/season-reset', {
+      method: 'POST',
+      body: JSON.stringify({ mode, seasonName }),
+    });
+  },
+
+  // Kullanıcı Yönetimi
+  getAllUsers: () => {
+    return apiRequest('/admin/users');
+  },
+
+  updateUser: (userId, data) => {
+    return apiRequest('/admin/users', {
+      method: 'PATCH',
+      body: JSON.stringify({ userId, ...data }),
+    });
+  },
+
+  deleteUser: (userId) => {
+    return apiRequest('/admin/users', {
+      method: 'DELETE',
+      body: JSON.stringify({ userId }),
+    });
+  },
+
+  // Battle Yönetimi
+  updateBattle: (battleId, data) => {
+    return apiRequest(`/admin/battles/${battleId}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    });
+  },
+
+  deleteBattle: (battleId) => {
+    return apiRequest(`/admin/battles/${battleId}`, {
+      method: 'DELETE',
+    });
+  },
+};
+
 // Default export
 export default authApi;
