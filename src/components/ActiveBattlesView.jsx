@@ -13,10 +13,14 @@ const ActiveBattlesView = ({ onBackClick }) => {
   const loadActiveBattles = async () => {
     try {
       setLoading(true);
+      console.log('🔄 ActiveBattlesView: Fetching active battles...');
       const data = await authApi.getActiveBattles();
-      setBattles(data.battles || []);
+      console.log('✅ ActiveBattlesView: API response:', data);
+      const battlesList = data.battles || data.data?.battles || [];
+      console.log('📊 ActiveBattlesView: Battles count:', battlesList.length);
+      setBattles(battlesList);
     } catch (error) {
-      console.error('Error loading active battles:', error);
+      console.error('❌ ActiveBattlesView: Error loading active battles:', error);
     } finally {
       setLoading(false);
     }
