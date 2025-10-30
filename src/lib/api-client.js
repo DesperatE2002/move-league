@@ -104,6 +104,14 @@ export const authApi = {
   getAllUsers: () => {
     return apiRequest('/users/all');
   },
+
+  getBattleLeague: () => {
+    return apiRequest('/leagues/battle');
+  },
+
+  getTeamLeague: () => {
+    return apiRequest('/leagues/team');
+  },
 };
 
 // Users API
@@ -185,15 +193,6 @@ export const studiosApi = {
     return apiRequest(`/studios/${id}`, {
       method: 'DELETE',
     });
-  },
-
-  // League API
-  getBattleLeague: () => {
-    return apiRequest('/leagues/battle');
-  },
-
-  getTeamLeague: () => {
-    return apiRequest('/leagues/team');
   },
 
   // Move Show Competition API
