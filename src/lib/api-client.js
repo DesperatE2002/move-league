@@ -96,6 +96,14 @@ export const authApi = {
       body: JSON.stringify({ currentPassword, newPassword }),
     });
   },
+
+  getActiveBattles: () => {
+    return apiRequest('/battles/active');
+  },
+
+  getAllUsers: () => {
+    return apiRequest('/users/all');
+  },
 };
 
 // Users API
@@ -177,15 +185,6 @@ export const studiosApi = {
     return apiRequest(`/studios/${id}`, {
       method: 'DELETE',
     });
-  },
-
-  // Active Battles & Users API
-  getActiveBattles: () => {
-    return apiRequest('/battles/active');
-  },
-
-  getAllUsers: () => {
-    return apiRequest('/users/all');
   },
 
   // League API
