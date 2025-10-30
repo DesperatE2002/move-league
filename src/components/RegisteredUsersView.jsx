@@ -17,6 +17,7 @@ const RegisteredUsersView = ({ onBackClick }) => {
       console.log('🔄 RegisteredUsersView: Kullanıcılar yükleniyor...');
       const response = await apiRequest('/users/all');
       console.log('✅ RegisteredUsersView: API yanıtı:', response);
+      console.log('📊 RegisteredUsersView: response.data:', response.data);
       const users = response.data?.users || response.users || [];
       console.log('📊 RegisteredUsersView: Kullanıcı sayısı:', users.length);
       setUsers(users);
