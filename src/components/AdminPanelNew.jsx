@@ -57,11 +57,10 @@ const AdminPanel = ({ onBack }) => {
         setReferees(data.data || []);
       }
 
-      // Tüm kullanıcıları yükle (User Management tab için)
-      if (activeTab === 'users') {
-        const usersData = await adminApi.getAllUsers();
-        setAllUsers(usersData.data?.users || []);
-      }
+      // Tüm kullanıcıları her zaman yükle
+      const usersData = await adminApi.getAllUsers();
+      console.log('🔍 Admin - Users Response:', usersData);
+      setAllUsers(usersData.data?.users || []);
 
     } catch (err) {
       console.error('❌ Admin panel yükleme hatası:', err);
@@ -194,6 +193,9 @@ const AdminPanel = ({ onBack }) => {
     { id: 'workshop_5', label: '🎓 Workshop 5', desc: '5 workshop tamamla' },
     { id: 'workshop_10', label: '🏅 Workshop 10', desc: '10 workshop tamamla' },
     { id: 'master', label: '👑 Master', desc: '1500+ rating' },
+    { id: 'fairplay', label: '🤝 Fairplay', desc: 'Centilmen davranış' },
+    { id: 'battle_champion', label: '🏆 Battle Şampiyonu', desc: 'Battle ligi şampiyonu' },
+    { id: 'show_champion', label: '🎭 Show Şampiyonu', desc: 'Show ligi şampiyonu' },
   ];
 
   if (loading) {
@@ -403,9 +405,56 @@ const AdminPanel = ({ onBack }) => {
       {activeTab === 'badges' && (
         <div className="tab-content">
           <h2>🏅 Rozet Sistemi</h2>
-          <p style={{ color: '#6b7280', marginBottom: '20px' }}>
-            Kullanıcı yönetimi sekmesinden kullanıcılara rozet ekleyebilirsiniz.
-          </p>
+          
+          {/* Kullanıcı Arama ve Rozet Ekleme */}
+          <div className="badge-assign-section">
+            <h3>🔍 Kullanıcıya Rozet Ekle</h3>
+            <div className="search-assign-container">
+              <input
+                type="text"
+                placeholder="Kullanıcı adı veya email ara..."
+                className="user-search-input"
+                onChange={(e) => {
+                  const searchTerm = e.target.value.toLowerCase();
+                  const filtered = allUsers.filter(u => 
+                    u.name.toLowerCase().includes(searchTerm) || 
+                    u.email.toLowerCase().includes(searchTerm)
+                  );
+                  // Filtrelenmiş kullanıcıları göster
+                  const dropdown = document.getElementById('user-dropdown');
+                  if (dropdown) {
+                    dropdown.innerHTML = filtered.slice(0, 5).map(u => `
+                      <div class="user-dropdown-item" data-userid="${u.id}">
+                        <img src="${u.avatar || '/default-avatar.png'}" alt="${u.name}" />
+                        <div>
+                          <strong>${u.name}</strong>
+                          <span>${u.email}</span>
+                        </div>
+                      </div>
+                    `).join('');
+                    dropdown.style.display = filtered.length > 0 ? 'block' : 'none';
+                    
+                    // Click event ekle
+                    dropdown.querySelectorAll('.user-dropdown-item').forEach(item => {
+                      item.onclick = () => {
+                        const userId = item.getAttribute('data-userid');
+                        const user = allUsers.find(u => u.id === userId);
+                        if (user) {
+                          setBadgeModal({ open: true, user });
+                          dropdown.style.display = 'none';
+                          e.target.value = '';
+                        }
+                      };
+                    });
+                  }
+                }}
+              />
+              <div id="user-dropdown" className="user-dropdown"></div>
+            </div>
+          </div>
+
+          {/* Tüm Rozetler */}
+          <h3 style={{ marginTop: '30px' }}>📋 Tüm Rozetler</h3>
           <div className="badges-grid">
             {availableBadges.map(badge => (
               <div key={badge.id} className="badge-item">
