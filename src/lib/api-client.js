@@ -81,6 +81,10 @@ export const authApi = {
     const userStr = localStorage.getItem('user');
     return userStr ? JSON.parse(userStr) : null;
   },
+
+  getCurrentUserFromAPI: async () => {
+    return apiRequest('/auth/me');
+  },
 };
 
 // Users API

@@ -22,6 +22,14 @@ const ProfilePage = ({ currentUser, onBackClick }) => {
     try {
       setLoading(true);
       
+      // Get fresh user data from API to get updated rating
+      const userData = await authApi.getCurrentUserFromAPI();
+      if (userData && userData.user) {
+        setUser(userData.user);
+        // Also update localStorage
+        localStorage.setItem('user', JSON.stringify(userData.user));
+      }
+      
       // Get user's enrolled workshops
       const workshopsData = await authApi.getEnrolledWorkshops();
       setEnrolledWorkshops(workshopsData.workshops || []);
