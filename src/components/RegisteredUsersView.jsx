@@ -15,10 +15,11 @@ const RegisteredUsersView = ({ onBackClick }) => {
     try {
       setLoading(true);
       console.log('🔄 RegisteredUsersView: Kullanıcılar yükleniyor...');
-      const data = await apiRequest('/users/all');
-      console.log('✅ RegisteredUsersView: API yanıtı:', data);
-      console.log('📊 RegisteredUsersView: Kullanıcı sayısı:', data.users?.length || 0);
-      setUsers(data.users || []);
+      const response = await apiRequest('/users/all');
+      console.log('✅ RegisteredUsersView: API yanıtı:', response);
+      const users = response.data?.users || response.users || [];
+      console.log('📊 RegisteredUsersView: Kullanıcı sayısı:', users.length);
+      setUsers(users);
     } catch (error) {
       console.error('❌ RegisteredUsersView: Kullanıcı yükleme hatası:', error);
       alert('Kullanıcılar yüklenemedi: ' + error.message);

@@ -17,27 +17,19 @@ export default function LeagueView({ onBackClick }) {
   const loadLeagues = async () => {
     setLoading(true);
     try {
-      console.log('🔄 LeagueView: Ligler yükleniyor...');
       const [battleData, teamData] = await Promise.all([
         authApi.getBattleLeague(),
         authApi.getTeamLeague()
       ]);
 
-      console.log('✅ LeagueView: Battle League yanıtı:', battleData);
-      console.log('✅ LeagueView: Team League yanıtı:', teamData);
-
       if (battleData.success) {
-        console.log('📊 Battle League sıralaması:', battleData.rankings?.length || 0, 'kişi');
         setBattleLeague(battleData);
-      } else {
-        console.error('❌ Battle League başarısız:', battleData);
       }
-      
       if (teamData.success) {
         setTeamLeague(teamData);
       }
     } catch (error) {
-      console.error('❌ LeagueView: Ligler yüklenirken hata:', error);
+      console.error('Ligler yüklenirken hata:', error);
     } finally {
       setLoading(false);
     }
@@ -120,36 +112,17 @@ export default function LeagueView({ onBackClick }) {
 
 // Battle Ligi Görünümü
 function BattleLeagueView({ data, formatDate }) {
-  console.log('🎯 BattleLeagueView data:', data);
-  
   if (!data?.season) {
     return (
       <div className="text-center py-12 bg-white/5 rounded-2xl backdrop-blur-sm border border-white/10">
         <p className="text-white/60 text-lg">
           Şu anda aktif bir Battle Ligi sezonu bulunmuyor.
         </p>
-        <p className="text-white/40 text-sm mt-2">
-          Data: {JSON.stringify(data)}
-        </p>
       </div>
     );
   }
 
   const { season, rankings } = data;
-  console.log('📊 Rankings:', rankings);
-
-  if (!rankings || rankings.length === 0) {
-    return (
-      <div className="text-center py-12 bg-white/5 rounded-2xl backdrop-blur-sm border border-white/10">
-        <p className="text-white/60 text-lg">
-          Henüz sıralama bulunmuyor.
-        </p>
-        <p className="text-white/40 text-sm mt-2">
-          Rankings: {JSON.stringify(rankings)}
-        </p>
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-6">
@@ -242,51 +215,38 @@ function BattleLeagueView({ data, formatDate }) {
                   <td className="p-4">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-full bg-gradient-to-br from-red-500 to-pink-500 flex items-center justify-center text-white font-bold">
-                        {ranking.avatar || ranking.name?.charAt(0) || '?'}
+                        {ranking.dancerAvatar || ranking.dancerName.charAt(0)}
                       </div>
-                      <span className="text-white font-medium">{ranking.name}</span>
+                      <span className="text-white font-medium">{ranking.dancerName}</span>
                     </div>
                   </td>
                   <td className="p-4">
-                    {ranking.danceStyles && ranking.danceStyles.length > 0 ? (
-                      <div className="flex gap-1 flex-wrap">
-                        {ranking.danceStyles.slice(0, 2).map((style, idx) => (
-                          <span key={idx} className="px-2 py-1 bg-purple-600/20 text-purple-300 text-xs rounded-lg border border-purple-600/30">
-                            {style}
-                          </span>
-                        ))}
-                        {ranking.danceStyles.length > 2 && (
-                          <span className="px-2 py-1 bg-white/10 text-white/60 text-xs rounded-lg">
-                            +{ranking.danceStyles.length - 2}
-                          </span>
-                        )}
-                      </div>
-                    ) : (
-                      <span className="text-white/40 text-sm">-</span>
-                    )}
+                    <span className="px-2 py-1 bg-purple-600/20 text-purple-300 text-sm rounded-lg border border-purple-600/30">
+                      {ranking.danceStyle}
+                    </span>
                   </td>
                   <td className="p-4 text-right">
                     <span className="text-white font-bold text-lg">{ranking.rating}</span>
                   </td>
                   <td className="p-4 text-right text-white/80">
-                    {ranking.totalBattles || 0}
+                    {ranking.totalBattles}
                   </td>
                   <td className="p-4 text-right">
                     <div className="text-sm">
-                      <span className="text-green-400">{ranking.wins || 0}</span>
+                      <span className="text-green-400">{ranking.wins}</span>
                       {' / '}
-                      <span className="text-red-400">{(ranking.totalBattles || 0) - (ranking.wins || 0)}</span>
+                      <span className="text-red-400">{ranking.losses}</span>
                       {' / '}
-                      <span className="text-yellow-400">0</span>
+                      <span className="text-yellow-400">{ranking.draws}</span>
                     </div>
                   </td>
                   <td className="p-4 text-right">
                     <span className={`font-semibold ${
-                      ((ranking.wins || 0) / (ranking.totalBattles || 1) * 100) >= 60 ? 'text-green-400' :
-                      ((ranking.wins || 0) / (ranking.totalBattles || 1) * 100) >= 40 ? 'text-yellow-400' :
+                      ranking.winRate >= 60 ? 'text-green-400' :
+                      ranking.winRate >= 40 ? 'text-yellow-400' :
                       'text-red-400'
                     }`}>
-                      {ranking.totalBattles > 0 ? ((ranking.wins || 0) / ranking.totalBattles * 100).toFixed(1) : '0.0'}%
+                      {ranking.winRate.toFixed(1)}%
                     </span>
                   </td>
                 </tr>

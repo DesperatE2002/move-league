@@ -11,7 +11,7 @@ async function main() {
   console.log('👑 Admin hesabı oluşturuluyor...\n');
 
   // Admin bilgileri
-  const adminEmail = 'admin@moveleague.com';
+  const adminEmail = 'admin@mleague.com';
   const adminPassword = 'MoveLeague2025!';
   const adminName = 'Move League Admin';
 
