@@ -14,9 +14,10 @@ const ActiveBattlesView = ({ onBackClick }) => {
     try {
       setLoading(true);
       console.log('🔄 ActiveBattlesView: Fetching active battles...');
-      const data = await authApi.getActiveBattles();
-      console.log('✅ ActiveBattlesView: API response:', data);
-      const battlesList = data.battles || data.data?.battles || [];
+      const response = await authApi.getActiveBattles();
+      console.log('✅ ActiveBattlesView: API response:', response);
+      console.log('📊 ActiveBattlesView: response.data:', response.data);
+      const battlesList = response.data?.battles || response.battles || [];
       console.log('📊 ActiveBattlesView: Battles count:', battlesList.length);
       setBattles(battlesList);
     } catch (error) {
