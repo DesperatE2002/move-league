@@ -318,8 +318,13 @@ const AdminPanel = ({ onBack }) => {
       {activeTab === 'users' && (
         <div className="tab-content">
           <h2>👥 Kullanıcı Yönetimi</h2>
-          <div className="users-list">
-            {allUsers.map(user => (
+          {allUsers.length === 0 ? (
+            <div className="empty-state">
+              <p>Kullanıcı bulunamadı veya yükleniyor...</p>
+            </div>
+          ) : (
+            <div className="users-list">
+              {allUsers.map(user => (
               <div key={user.id} className="user-card">
                 <div className="user-info">
                   <img src={user.avatar || '/default-avatar.png'} alt={user.name} />
@@ -363,7 +368,8 @@ const AdminPanel = ({ onBack }) => {
                 </div>
               </div>
             ))}
-          </div>
+            </div>
+          )}
         </div>
       )}
 
@@ -371,8 +377,13 @@ const AdminPanel = ({ onBack }) => {
       {activeTab === 'battles' && (
         <div className="tab-content">
           <h2>⚔️ Battle Yönetimi</h2>
-          <div className="battles-list">
-            {battles.map(battle => {
+          {battles.length === 0 ? (
+            <div className="empty-state">
+              <p>Battle bulunamadı</p>
+            </div>
+          ) : (
+            <div className="battles-list">
+              {battles.map(battle => {
               const statusBadge = getStatusBadge(battle.status);
               return (
                 <div key={battle.id} className="battle-card">
@@ -397,7 +408,8 @@ const AdminPanel = ({ onBack }) => {
                 </div>
               );
             })}
-          </div>
+            </div>
+          )}
         </div>
       )}
 
