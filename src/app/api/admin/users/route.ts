@@ -5,16 +5,29 @@ export async function GET(request: NextRequest) {
   try {
     const token = request.headers.get("authorization")?.replace("Bearer ", "");
     if (!token) {
-      return NextResponse.json({ success: false, message: "Yetkisiz" }, { status: 401 });
+      return NextResponse.json({ success: false, error: "Yetkisiz" }, { status: 401 });
     }
 
-    const userId = Buffer.from(token, "base64").toString("utf-8").split(":")[0];
+    // Token decode - JSON format: {userId, email, role, exp}
+    let userId: string;
+    try {
+      const decoded = JSON.parse(Buffer.from(token, "base64").toString("utf-8"));
+      userId = decoded.userId;
+      
+      // Check expiration
+      if (decoded.exp < Date.now()) {
+        return NextResponse.json({ success: false, error: "Token süresi dolmuş" }, { status: 401 });
+      }
+    } catch (e) {
+      return NextResponse.json({ success: false, error: "Geçersiz token" }, { status: 401 });
+    }
+
     const adminUser = await prisma.user.findFirst({
       where: { id: userId, role: "ADMIN" }
     });
 
     if (!adminUser) {
-      return NextResponse.json({ success: false, message: "Admin gerekli" }, { status: 403 });
+      return NextResponse.json({ success: false, error: "Admin yetkisi gerekli" }, { status: 403 });
     }
 
     const { searchParams } = new URL(request.url);
@@ -31,8 +44,8 @@ export async function GET(request: NextRequest) {
         { email: { contains: search, mode: "insensitive" } }
       ];
     }
-    if (role && role !== "ALL") {
-      where.role = role;
+    if (role && role.toUpperCase() !== "ALL") {
+      where.role = role.toUpperCase();
     }
 
     const [users, total] = await Promise.all([
@@ -84,16 +97,27 @@ export async function PATCH(request: NextRequest) {
   try {
     const token = request.headers.get("authorization")?.replace("Bearer ", "");
     if (!token) {
-      return NextResponse.json({ success: false, message: "Yetkisiz" }, { status: 401 });
+      return NextResponse.json({ success: false, error: "Yetkisiz" }, { status: 401 });
     }
 
-    const userId = Buffer.from(token, "base64").toString("utf-8").split(":")[0];
+    let userId: string;
+    try {
+      const decoded = JSON.parse(Buffer.from(token, "base64").toString("utf-8"));
+      userId = decoded.userId;
+      
+      if (decoded.exp < Date.now()) {
+        return NextResponse.json({ success: false, error: "Token süresi dolmuş" }, { status: 401 });
+      }
+    } catch (e) {
+      return NextResponse.json({ success: false, error: "Geçersiz token" }, { status: 401 });
+    }
+
     const adminUser = await prisma.user.findFirst({
       where: { id: userId, role: "ADMIN" }
     });
 
     if (!adminUser) {
-      return NextResponse.json({ success: false, message: "Admin gerekli" }, { status: 403 });
+      return NextResponse.json({ success: false, error: "Admin yetkisi gerekli" }, { status: 403 });
     }
 
     const body = await request.json();
@@ -194,16 +218,27 @@ export async function POST(request: NextRequest) {
   try {
     const token = request.headers.get("authorization")?.replace("Bearer ", "");
     if (!token) {
-      return NextResponse.json({ success: false, message: "Yetkisiz" }, { status: 401 });
+      return NextResponse.json({ success: false, error: "Yetkisiz" }, { status: 401 });
     }
 
-    const userId = Buffer.from(token, "base64").toString("utf-8").split(":")[0];
+    let userId: string;
+    try {
+      const decoded = JSON.parse(Buffer.from(token, "base64").toString("utf-8"));
+      userId = decoded.userId;
+      
+      if (decoded.exp < Date.now()) {
+        return NextResponse.json({ success: false, error: "Token süresi dolmuş" }, { status: 401 });
+      }
+    } catch (e) {
+      return NextResponse.json({ success: false, error: "Geçersiz token" }, { status: 401 });
+    }
+
     const adminUser = await prisma.user.findFirst({
       where: { id: userId, role: "ADMIN" }
     });
 
     if (!adminUser) {
-      return NextResponse.json({ success: false, message: "Admin gerekli" }, { status: 403 });
+      return NextResponse.json({ success: false, error: "Admin yetkisi gerekli" }, { status: 403 });
     }
 
     const body = await request.json();

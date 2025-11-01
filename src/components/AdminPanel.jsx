@@ -87,6 +87,8 @@ const AdminPanel = ({ onBack }) => {
           ...(usersRoleFilter !== "all" && { role: usersRoleFilter })
         });
 
+        console.log("🔍 Fetching users with params:", params.toString());
+        
         const usersResponse = await fetch(`/api/admin/users?${params}`, {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -94,10 +96,25 @@ const AdminPanel = ({ onBack }) => {
           }
         });
         
+        console.log("📡 Users API response status:", usersResponse.status);
+        
         if (usersResponse.ok) {
-          const data = await usersResponse.json();
-          setUsers(data.data.users || []);
-          setUsersTotal(data.data.total || 0);
+          const response = await usersResponse.json();
+          console.log("📊 Users API full response:", response);
+          
+          if (response.success && response.data) {
+            console.log("✅ Users array:", response.data.users);
+            console.log("✅ Total users:", response.data.total);
+            setUsers(response.data.users || []);
+            setUsersTotal(response.data.total || 0);
+          } else {
+            console.error("❌ API response structure error:", response);
+            setUsers([]);
+            setUsersTotal(0);
+          }
+        } else {
+          const errorData = await usersResponse.json();
+          console.error("❌ Users API error:", errorData);
         }
       }
 
