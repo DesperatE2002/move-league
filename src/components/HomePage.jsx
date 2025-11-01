@@ -19,7 +19,7 @@ import CompetitionCreateForm from './CompetitionCreateForm';
 import CompetitionDetail from './CompetitionDetail';
 import TeamCreate from './TeamCreate';
 import DancerInvitations from './DancerInvitations';
-import AdminPanel from './AdminPanelNew';
+import AdminPanel from './AdminPanel';
 import RefereePanel from './RefereePanel';
 import { authApi } from '@/lib/api-client';
 
