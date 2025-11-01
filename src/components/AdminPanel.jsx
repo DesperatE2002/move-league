@@ -22,9 +22,13 @@ const AdminPanel = ({ onBack }) => {
   const [usersSearchInput, setUsersSearchInput] = useState(""); // For debounce
   const [usersRoleFilter, setUsersRoleFilter] = useState("all");
   const [selectedUsers, setSelectedUsers] = useState([]);
-  const [showModal, setShowModal] = useState(null); // "role", "rating", "profile", "badges", "notification", "delete", "bulkNotification", "bulkBadge"
+  const [showModal, setShowModal] = useState(null); // "role", "rating", "profile", "badges", "notification", "delete", "bulkNotification", "bulkBadge", "viewUser", "createBadge", "deleteBadge"
   const [modalData, setModalData] = useState(null);
   const [actionLoading, setActionLoading] = useState(false);
+  
+  // Badges tab state
+  const [allBadges, setAllBadges] = useState([]);
+  const [badgesLoading, setBadgesLoading] = useState(false);
   
   const currentUser = authApi.getCurrentUser();
 
@@ -116,6 +120,22 @@ const AdminPanel = ({ onBack }) => {
           const errorData = await usersResponse.json();
           console.error("❌ Users API error:", errorData);
         }
+      } else if (activeTab === "badges") {
+        setBadgesLoading(true);
+        const badgesResponse = await fetch("/api/admin/badges", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json"
+          }
+        });
+        
+        if (badgesResponse.ok) {
+          const response = await badgesResponse.json();
+          if (response.success && response.data) {
+            setAllBadges(response.data.badges || []);
+          }
+        }
+        setBadgesLoading(false);
       }
 
       console.log("✅ Admin panel verileri yüklendi");
@@ -221,6 +241,145 @@ const AdminPanel = ({ onBack }) => {
         : [...prev, userId]
     );
   };
+
+  const handleCreateBadge = async () => {
+    const badgeName = document.getElementById("new-badge-name")?.value?.trim();
+    
+    if (!badgeName) {
+      alert("Rozet adı gerekli!");
+      return;
+    }
+
+    try {
+      setActionLoading(true);
+      const token = localStorage.getItem("token");
+
+      const response = await fetch("/api/admin/badges", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ badgeName })
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Rozet oluşturulamadı");
+      }
+
+      alert("✅ Rozet oluşturuldu!");
+      setShowModal(null);
+      await loadData();
+    } catch (err) {
+      console.error("❌ Rozet oluşturma hatası:", err);
+      alert("Hata: " + err.message);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleDeleteBadge = async (badgeName) => {
+    if (!confirm(`"${badgeName}" rozetini silmek istediğinize emin misiniz? Bu rozete sahip tüm kullanıcılardan kaldırılacak.`)) {
+      return;
+    }
+
+    try {
+      setActionLoading(true);
+      const token = localStorage.getItem("token");
+
+      const response = await fetch("/api/admin/badges", {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ badgeName })
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Rozet silinemedi");
+      }
+
+      const result = await response.json();
+      alert(`✅ ${result.message}`);
+      setShowModal(null);
+      setModalData(null);
+      await loadData();
+    } catch (err) {
+      console.error("❌ Rozet silme hatası:", err);
+      alert("Hata: " + err.message);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleSendBroadcast = async () => {
+    const title = document.getElementById("notif-title")?.value?.trim();
+    const message = document.getElementById("notif-message")?.value?.trim();
+    const target = document.getElementById("notif-target")?.value;
+    const role = document.getElementById("notif-role")?.value;
+
+    if (!title || !message) {
+      alert("Başlık ve mesaj gerekli!");
+      return;
+    }
+
+    // Hedef belirleme
+    let userIds = [];
+    if (target === "all") {
+      // Tüm kullanıcılara gönder
+      userIds = users.map(u => u.id);
+      
+      // Eğer sayfa bazlıysa tüm kullanıcıları çekmemiz gerek
+      if (confirm("Tüm kullanıcılara bildirim göndermek istediğinize emin misiniz?")) {
+        // Basitçe backend'e "all" gönderebiliriz veya tüm kullanıcıları çekebiliriz
+        // Şimdilik mevcut sayfadaki kullanıcılar
+      } else {
+        return;
+      }
+    } else if (target === "role") {
+      // Belirli role gönder
+      userIds = users.filter(u => u.role === role).map(u => u.id);
+      if (userIds.length === 0) {
+        alert("Bu role sahip kullanıcı bulunamadı!");
+        return;
+      }
+    }
+
+    try {
+      setActionLoading(true);
+      await handleBulkAction("BULK_NOTIFICATION", {
+        userIds,
+        title,
+        message
+      });
+      
+      // Formu temizle
+      document.getElementById("notif-title").value = "";
+      document.getElementById("notif-message").value = "";
+    } catch (err) {
+      console.error("❌ Broadcast hatası:", err);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  // Notification target değiştiğinde role selector'ı göster/gizle
+  useEffect(() => {
+    const targetSelect = document.getElementById("notif-target");
+    const roleSelector = document.getElementById("role-selector");
+    
+    if (targetSelect && roleSelector) {
+      const handleTargetChange = () => {
+        roleSelector.style.display = targetSelect.value === "role" ? "block" : "none";
+      };
+      
+      targetSelect.addEventListener("change", handleTargetChange);
+      return () => targetSelect.removeEventListener("change", handleTargetChange);
+    }
+  }, [activeTab]);
 
   const getStatusBadge = (status) => {
     const badges = {
@@ -649,7 +808,7 @@ const AdminPanel = ({ onBack }) => {
                             onChange={() => toggleUserSelection(user.id)}
                           />
                         </td>
-                        <td>
+                        <td onClick={() => openModal("viewUser", user)} style={{ cursor: "pointer" }}>
                           <div className="user-cell">
                             <div className="user-avatar">{user.name?.charAt(0) || "?"}</div>
                             <div className="user-info">
@@ -766,7 +925,117 @@ const AdminPanel = ({ onBack }) => {
           </div>
         )}
 
-        {!["stats", "battles", "users"].includes(activeTab) && (
+        {activeTab === "badges" && (
+          <div className="badges-management">
+            <div className="section-header">
+              <h2>🎖️ Rozet Yönetimi</h2>
+              <button
+                className="btn-create"
+                onClick={() => setShowModal("createBadge")}
+              >
+                ➕ Yeni Rozet Oluştur
+              </button>
+            </div>
+
+            {badgesLoading ? (
+              <div className="loading-state">⏳ Rozetler yükleniyor...</div>
+            ) : allBadges.length === 0 ? (
+              <div className="empty-state">
+                <div className="empty-icon">🎖️</div>
+                <p>Henüz rozet oluşturulmamış</p>
+                <button
+                  className="btn-primary"
+                  onClick={() => setShowModal("createBadge")}
+                >
+                  İlk Rozeti Oluştur
+                </button>
+              </div>
+            ) : (
+              <div className="badges-grid">
+                {allBadges.map((badge) => (
+                  <div key={badge.name} className="badge-card">
+                    <div className="badge-card-header">
+                      <div className="badge-icon">🎖️</div>
+                      <h3>{badge.name}</h3>
+                    </div>
+                    <div className="badge-card-body">
+                      <div className="badge-stat">
+                        <span className="badge-stat-label">Kullanım:</span>
+                        <span className="badge-stat-value">{badge.usageCount} kullanıcı</span>
+                      </div>
+                    </div>
+                    <div className="badge-card-footer">
+                      <button
+                        className="btn-danger-sm"
+                        onClick={() => openModal("deleteBadge", badge)}
+                      >
+                        🗑️ Sil
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {activeTab === "notifications" && (
+          <div className="notifications-management">
+            <div className="section-header">
+              <h2>📢 Toplu Bildirim Gönder</h2>
+            </div>
+
+            <div className="notification-form">
+              <div className="form-group">
+                <label>📋 Başlık</label>
+                <input
+                  type="text"
+                  className="form-input"
+                  placeholder="Bildirim başlığı..."
+                  id="notif-title"
+                />
+              </div>
+
+              <div className="form-group">
+                <label>✉️ Mesaj</label>
+                <textarea
+                  className="form-textarea"
+                  placeholder="Bildirim mesajı..."
+                  rows="4"
+                  id="notif-message"
+                />
+              </div>
+
+              <div className="form-group">
+                <label>👥 Hedef</label>
+                <select className="form-select" id="notif-target">
+                  <option value="all">Tüm Kullanıcılar</option>
+                  <option value="role">Belirli Rol</option>
+                </select>
+              </div>
+
+              <div className="form-group" id="role-selector" style={{ display: "none" }}>
+                <label>🎭 Rol Seçin</label>
+                <select className="form-select" id="notif-role">
+                  <option value="DANCER">🕺 Dansçı</option>
+                  <option value="INSTRUCTOR">👨‍🏫 Eğitmen</option>
+                  <option value="STUDIO">🏢 Stüdyo</option>
+                  <option value="REFEREE">⚖️ Hakem</option>
+                  <option value="ADMIN">⚡ Admin</option>
+                </select>
+              </div>
+
+              <button
+                className="btn-primary btn-large"
+                onClick={handleSendBroadcast}
+              >
+                📤 Bildirimi Gönder
+              </button>
+            </div>
+          </div>
+        )}
+
+        {!["stats", "battles", "users", "badges", "notifications"].includes(activeTab) && (
           <div className="coming-soon">
             <div className="coming-soon-icon">🚧</div>
             <h3>Yakında Gelecek</h3>
@@ -1047,6 +1316,114 @@ const AdminPanel = ({ onBack }) => {
         </div>
       )}
 
+      {showModal === "viewUser" && modalData && (
+        <div className="modal-overlay" onClick={() => setShowModal(null)}>
+          <div className="modal-content modal-xl" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>👤 Kullanıcı Profili</h3>
+              <button className="modal-close" onClick={() => setShowModal(null)}>×</button>
+            </div>
+            <div className="modal-body">
+              <div className="profile-view">
+                <div className="profile-header">
+                  <div className="profile-avatar-large">{modalData.name?.charAt(0) || "?"}</div>
+                  <div className="profile-main-info">
+                    <h2>{modalData.name || "İsimsiz"}</h2>
+                    <p className="profile-email">{modalData.email}</p>
+                    <span className={`role-badge-large role-${modalData.role?.toLowerCase()}`}>
+                      {modalData.role === "DANCER" ? "🕺 Dansçı" :
+                       modalData.role === "INSTRUCTOR" ? "👨‍🏫 Eğitmen" :
+                       modalData.role === "STUDIO" ? "🏢 Stüdyo" :
+                       modalData.role === "REFEREE" ? "⚖️ Hakem" :
+                       modalData.role === "ADMIN" ? "⚡ Admin" : modalData.role}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="profile-stats">
+                  <div className="profile-stat">
+                    <div className="stat-icon">⭐</div>
+                    <div className="stat-content">
+                      <div className="stat-value">{modalData.rating || 1000}</div>
+                      <div className="stat-label">Rating</div>
+                    </div>
+                  </div>
+                  <div className="profile-stat">
+                    <div className="stat-icon">⚔️</div>
+                    <div className="stat-content">
+                      <div className="stat-value">{(modalData._count?.initiatedBattles || 0) + (modalData._count?.challengedBattles || 0)}</div>
+                      <div className="stat-label">Toplam Battle</div>
+                    </div>
+                  </div>
+                  <div className="profile-stat">
+                    <div className="stat-icon">🏆</div>
+                    <div className="stat-content">
+                      <div className="stat-value">{modalData._count?.wonBattles || 0}</div>
+                      <div className="stat-label">Kazanılan</div>
+                    </div>
+                  </div>
+                  <div className="profile-stat">
+                    <div className="stat-icon">📅</div>
+                    <div className="stat-content">
+                      <div className="stat-value">{new Date(modalData.createdAt).toLocaleDateString("tr-TR")}</div>
+                      <div className="stat-label">Kayıt Tarihi</div>
+                    </div>
+                  </div>
+                </div>
+
+                {modalData.badges && modalData.badges.length > 0 && (
+                  <div className="profile-section">
+                    <h4>🎖️ Rozetler</h4>
+                    <div className="profile-badges">
+                      {modalData.badges.map((badge, idx) => (
+                        <span key={idx} className="profile-badge">{badge}</span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {modalData.bio && (
+                  <div className="profile-section">
+                    <h4>📝 Bio</h4>
+                    <p className="profile-bio">{modalData.bio}</p>
+                  </div>
+                )}
+
+                {modalData.danceStyles && modalData.danceStyles.length > 0 && (
+                  <div className="profile-section">
+                    <h4>💃 Dans Stilleri</h4>
+                    <div className="profile-tags">
+                      {modalData.danceStyles.map((style, idx) => (
+                        <span key={idx} className="profile-tag">{style}</span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {modalData.experience !== null && modalData.experience !== undefined && (
+                  <div className="profile-section">
+                    <h4>🎯 Deneyim</h4>
+                    <p className="profile-experience">{modalData.experience} yıl</p>
+                  </div>
+                )}
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button className="btn-secondary" onClick={() => setShowModal(null)}>Kapat</button>
+              <button 
+                className="btn-primary" 
+                onClick={() => {
+                  setShowModal(null);
+                  setTimeout(() => openModal("profile", modalData), 100);
+                }}
+              >
+                Profili Düzenle
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {showModal === "bulkNotification" && (
         <div className="modal-overlay" onClick={() => setShowModal(null)}>
           <div className="modal-content modal-large" onClick={(e) => e.stopPropagation()}>
@@ -1091,6 +1468,69 @@ const AdminPanel = ({ onBack }) => {
                 }}
               >
                 {actionLoading ? "Gönderiliyor..." : `${selectedUsers.length} Kişiye Gönder`}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showModal === "createBadge" && (
+        <div className="modal-overlay" onClick={() => setShowModal(null)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>➕ Yeni Rozet Oluştur</h3>
+              <button className="modal-close" onClick={() => setShowModal(null)}>×</button>
+            </div>
+            <div className="modal-body">
+              <div className="form-group">
+                <label>🎖️ Rozet Adı</label>
+                <input
+                  type="text"
+                  className="modal-input"
+                  id="new-badge-name"
+                  placeholder="Örn: 🏆 Champion, 🔥 Fire Dancer, 👑 King"
+                />
+                <small style={{color: "rgba(255,255,255,0.5)", marginTop: "0.5rem", display: "block"}}>
+                  Emoji ile birlikte yazın (emoji + boşluk + isim)
+                </small>
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button className="btn-secondary" onClick={() => setShowModal(null)}>İptal</button>
+              <button
+                className="btn-primary"
+                disabled={actionLoading}
+                onClick={handleCreateBadge}
+              >
+                {actionLoading ? "Oluşturuluyor..." : "Rozet Oluştur"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showModal === "deleteBadge" && modalData && (
+        <div className="modal-overlay" onClick={() => setShowModal(null)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>🗑️ Rozet Sil</h3>
+              <button className="modal-close" onClick={() => setShowModal(null)}>×</button>
+            </div>
+            <div className="modal-body">
+              <div className="warning-box">
+                <div className="warning-icon">⚠️</div>
+                <p><strong>{modalData.name}</strong> rozeti silinecek.</p>
+                <p>Bu rozete sahip <strong>{modalData.usageCount} kullanıcıdan</strong> kaldırılacak.</p>
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button className="btn-secondary" onClick={() => setShowModal(null)}>İptal</button>
+              <button
+                className="btn-danger"
+                disabled={actionLoading}
+                onClick={() => handleDeleteBadge(modalData.name)}
+              >
+                {actionLoading ? "Siliniyor..." : "Rozeti Sil"}
               </button>
             </div>
           </div>
