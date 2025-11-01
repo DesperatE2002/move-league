@@ -1147,7 +1147,7 @@ const AdminPanel = ({ onBack, onViewUserProfile }) => {
                   className="modal-input"
                   defaultValue={modalData.danceStyles?.join(", ") || ""}
                   id="newDanceStyles"
-                  placeholder="Hip-Hop, Breaking, Popping..."
+                  placeholder="SALSA, BACHATA, HİPHOP, KPOP"
                 />
               </div>
               <div className="form-group">

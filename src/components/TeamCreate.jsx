@@ -225,13 +225,10 @@ const TeamCreate = ({ competitionId, onBackClick, onSuccess }) => {
               className="style-filter"
             >
               <option value="">🎭 Tüm Stiller</option>
-              <option value="Salsa">Salsa</option>
-              <option value="Bachata">Bachata</option>
-              <option value="Kizomba">Kizomba</option>
-              <option value="Zouk">Zouk</option>
-              <option value="Tango">Tango</option>
-              <option value="Hip Hop">Hip Hop</option>
-              <option value="Contemporary">Contemporary</option>
+              <option value="SALSA">SALSA</option>
+              <option value="BACHATA">BACHATA</option>
+              <option value="HİPHOP">HİPHOP</option>
+              <option value="KPOP">KPOP</option>
             </select>
           </div>
 

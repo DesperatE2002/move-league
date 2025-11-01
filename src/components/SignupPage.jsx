@@ -22,8 +22,7 @@ const SignupPage = ({ onSignup, onBackToLogin }) => {
   const [error, setError] = useState('');
 
   const danceStyleOptions = [
-    'Salsa', 'Bachata', 'Kizomba', 'Zouk', 'Tango', 
-    'Hip Hop', 'Contemporary', 'Breaking', 'House', 'Waacking'
+    'SALSA', 'BACHATA', 'HİPHOP', 'KPOP'
   ];
 
   const handleInputChange = (e) => {

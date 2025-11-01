@@ -110,21 +110,10 @@ const WorkshopCreate = ({ onBack, onSuccess }) => {
               <label>Kategori *</label>
               <select name="category" value={formData.category} onChange={handleChange} required>
                 <option value="">Kategori Seçin</option>
-                <option value="hiphop">Hip Hop</option>
-                <option value="breaking">Breaking</option>
-                <option value="popping">Popping</option>
-                <option value="locking">Locking</option>
-                <option value="house">House</option>
-                <option value="waacking">Waacking</option>
-                <option value="krump">Krump</option>
-                <option value="contemporary">Contemporary</option>
-                <option value="ballet">Ballet</option>
-                <option value="jazz">Jazz</option>
-                <option value="street">Street Dance</option>
-                <option value="latin">Latin</option>
-                <option value="salsa">Salsa</option>
-                <option value="bachata">Bachata</option>
-                <option value="kizomba">Kizomba</option>
+                <option value="salsa">SALSA</option>
+                <option value="bachata">BACHATA</option>
+                <option value="hiphop">HİPHOP</option>
+                <option value="kpop">KPOP</option>
               </select>
             </div>
 

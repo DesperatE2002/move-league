@@ -21,8 +21,8 @@ const LeaguesView = ({ onBack }) => {
       },
       {
         id: 2,
-        name: "Breaking Championship",
-        category: "Breaking",
+        name: "KPOP Dance Championship",
+        category: "KPOP",
         participants: 24,
         maxParticipants: 32,
         startDate: "2025-04-01",
@@ -34,7 +34,7 @@ const LeaguesView = ({ onBack }) => {
       {
         id: 3,
         name: "Latin Dance Battle Series",
-        category: "Salsa/Bachata",
+        category: "SALSA/BACHATA",
         participants: 16,
         maxParticipants: 16,
         startDate: "2025-03-20",
@@ -47,8 +47,8 @@ const LeaguesView = ({ onBack }) => {
     past: [
       {
         id: 4,
-        name: "Winter Freestyle Battle 2024",
-        category: "Freestyle",
+        name: "Winter HİPHOP Battle 2024",
+        category: "HİPHOP",
         participants: 28,
         winner: "DJ Ramazan",
         endDate: "2024-12-28",
@@ -57,8 +57,8 @@ const LeaguesView = ({ onBack }) => {
       },
       {
         id: 5,
-        name: "Popping Masters Cup",
-        category: "Popping",
+        name: "BACHATA Masters Cup",
+        category: "BACHATA",
         participants: 20,
         winner: "Zeynep Kaya",
         endDate: "2024-11-15",

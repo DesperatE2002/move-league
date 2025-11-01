@@ -75,14 +75,10 @@ const BattleRequest = ({ onBack }) => {
   );
 
   const danceStyles = [
-    'Hip-Hop',
-    'Breaking',
-    'Popping',
-    'Locking',
-    'House',
-    'Krump',
-    'Freestyle',
-    'Contemporary',
+    'SALSA',
+    'BACHATA',
+    'HİPHOP',
+    'KPOP',
   ];
 
   return (
