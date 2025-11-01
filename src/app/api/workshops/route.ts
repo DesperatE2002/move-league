@@ -62,7 +62,7 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    return NextResponse.json(workshops);
+    return NextResponse.json({ success: true, data: workshops });
   } catch (error) {
     console.error('Get workshops error:', error);
     return NextResponse.json(
@@ -153,7 +153,7 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    return NextResponse.json(workshop, { status: 201 });
+    return NextResponse.json({ success: true, data: workshop }, { status: 201 });
   } catch (error) {
     console.error('Create workshop error:', error);
     return NextResponse.json(

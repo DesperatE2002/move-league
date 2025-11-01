@@ -22,7 +22,7 @@ const WorkshopsPage = ({ onBack, onWorkshopClick, onCreateClick }) => {
     try {
       setLoading(true);
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:3000/api/workshops?isActive=true', {
+      const response = await fetch('/api/workshops?isActive=true', {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
@@ -30,7 +30,7 @@ const WorkshopsPage = ({ onBack, onWorkshopClick, onCreateClick }) => {
 
       if (response.ok) {
         const data = await response.json();
-        setWorkshops(data);
+        setWorkshops(data.data || data); // Handle both formats
       }
     } catch (error) {
       console.error('Load workshops error:', error);

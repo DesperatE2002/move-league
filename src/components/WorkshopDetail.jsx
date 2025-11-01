@@ -19,7 +19,7 @@ const WorkshopDetail = ({ workshopId, onBack }) => {
     try {
       setLoading(true);
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:3000/api/workshops/${workshopId}`, {
+      const response = await fetch(`/api/workshops/${workshopId}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
@@ -27,7 +27,7 @@ const WorkshopDetail = ({ workshopId, onBack }) => {
 
       if (response.ok) {
         const data = await response.json();
-        setWorkshop(data);
+        setWorkshop(data.data || data); // Handle both formats
       }
     } catch (error) {
       console.error('Load workshop error:', error);
@@ -44,7 +44,7 @@ const WorkshopDetail = ({ workshopId, onBack }) => {
     try {
       setEnrolling(true);
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:3000/api/workshops/${workshopId}`, {
+      const response = await fetch(`/api/workshops/${workshopId}`, {
         method: 'PATCH',
         headers: {
           'Authorization': `Bearer ${token}`,

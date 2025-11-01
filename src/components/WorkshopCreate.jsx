@@ -53,7 +53,7 @@ const WorkshopCreate = ({ onBack, onSuccess }) => {
     try {
       setCreating(true);
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:3000/api/workshops', {
+      const response = await fetch('/api/workshops', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -68,16 +68,18 @@ const WorkshopCreate = ({ onBack, onSuccess }) => {
       });
 
       const data = await response.json();
+      console.log('Workshop create response:', data);
 
       if (response.ok) {
         alert('✅ Workshop başarıyla oluşturuldu!');
         if (onSuccess) onSuccess();
       } else {
-        alert(`❌ Hata: ${data.error}`);
+        console.error('Workshop create error:', data);
+        alert(`❌ Hata: ${data.error || 'Workshop oluşturulamadı'}`);
       }
     } catch (error) {
       console.error('Create workshop error:', error);
-      alert('Bir hata oluştu.');
+      alert(`Bir hata oluştu: ${error.message}`);
     } finally {
       setCreating(false);
     }
