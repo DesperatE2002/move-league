@@ -10,11 +10,14 @@ import { battlesApi, authApi } from '@/lib/api-client';
  */
 
 const AdminPanel = ({ onBack }) => {
+  const [activeTab, setActiveTab] = useState('stats'); // stats, battles, users, badges, notifications
   const [battles, setBattles] = useState([]);
   const [referees, setReferees] = useState([]);
+  const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [assigningReferee, setAssigningReferee] = useState(null);
-  const [filterStatus, setFilterStatus] = useState('all'); // all, needsReferee, assigned
+  const [filterStatus, setFilterStatus] = useState('all');
+  const [period, setPeriod] = useState('week'); // day, week, month, year, all
   const currentUser = authApi.getCurrentUser();
 
   useEffect(() => {
@@ -24,34 +27,43 @@ const AdminPanel = ({ onBack }) => {
       return;
     }
     loadData();
-  }, []);
+  }, [activeTab, period]);
 
   const loadData = async () => {
     try {
       setLoading(true);
-      
-      // Battle'ları yükle (onay bekleyenler ve aktif olanlar)
-      const battlesResponse = await battlesApi.getBattles();
-      console.log('🔍 Admin Panel - Battles Response:', battlesResponse);
-      console.log('🔍 Battles Data:', battlesResponse.data);
-      setBattles(battlesResponse.data || []);
-
-      // Hakemleri yükle
       const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
-      const usersResponse = await fetch('/api/users?role=REFEREE', {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
       
-      if (usersResponse.ok) {
-        const data = await usersResponse.json();
-        console.log('🔍 Referees Response:', data);
-        console.log('🔍 Referees Data:', data.data);
-        setReferees(data.data || []);
-      } else {
-        console.error('❌ Referees fetch failed:', usersResponse.status);
+      if (activeTab === 'stats') {
+        // İstatistikleri yükle
+        const statsResponse = await fetch(`/api/admin/stats?period=${period}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        if (statsResponse.ok) {
+          const data = await statsResponse.json();
+          setStats(data.data);
+        }
+      } else if (activeTab === 'battles') {
+        // Battle'ları yükle
+        const battlesResponse = await battlesApi.getBattles();
+        setBattles(battlesResponse.data || []);
+
+        // Hakemleri yükle
+        const usersResponse = await fetch('/api/users?role=REFEREE', {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        if (usersResponse.ok) {
+          const data = await usersResponse.json();
+          setReferees(data.data || []);
+        }
       }
 
       console.log('✅ Admin panel verileri yüklendi');
@@ -121,65 +133,264 @@ const AdminPanel = ({ onBack }) => {
 
   const filteredBattles = getFilteredBattles();
 
-  return (
-    <div className="admin-panel-root">
-      {/* Header */}
-      <div className="admin-header">
-        <button className="back-btn" onClick={onBack}>
-          <span className="back-icon">←</span>
-          <span>Geri</span>
-        </button>
-        <div className="header-title">
-          <h1>👑 Admin Paneli</h1>
-          <p>Battle yönetimi ve hakem atama sistemi</p>
+  const renderContent = () => {
+    if (loading) {
+      return (
+        <div className="loading">
+          <div className="spinner"></div>
+          <p>Yükleniyor...</p>
+        </div>
+      );
+    }
+
+    switch (activeTab) {
+      case 'stats':
+        return renderStatsTab();
+      case 'battles':
+        return renderBattlesTab();
+      default:
+        return (
+          <div className="coming-soon">
+            <div className="coming-soon-icon">🚧</div>
+            <h3>Yakında Gelecek</h3>
+            <p>Bu özellik üzerinde çalışıyoruz...</p>
+          </div>
+        );
+    }
+  };
+
+  const renderStatsTab = () => {
+    if (!stats) return null;
+
+    return (
+      <div className="stats-tab">
+        {/* Period Selector */}
+        <div className="period-selector">
+          <button 
+            className={`period-btn ${period === 'day' ? 'active' : ''}`}
+            onClick={() => setPeriod('day')}
+          >
+            Bugün
+          </button>
+          <button 
+            className={`period-btn ${period === 'week' ? 'active' : ''}`}
+            onClick={() => setPeriod('week')}
+          >
+            Bu Hafta
+          </button>
+          <button 
+            className={`period-btn ${period === 'month' ? 'active' : ''}`}
+            onClick={() => setPeriod('month')}
+          >
+            Bu Ay
+          </button>
+          <button 
+            className={`period-btn ${period === 'year' ? 'active' : ''}`}
+            onClick={() => setPeriod('year')}
+          >
+            Bu Yıl
+          </button>
+          <button 
+            className={`period-btn ${period === 'all' ? 'active' : ''}`}
+            onClick={() => setPeriod('all')}
+          >
+            Tümü
+          </button>
+        </div>
+
+        {/* Overview Stats */}
+        <div className="stats-grid-large">
+          <div className="stat-card-large stat-primary">
+            <div className="stat-icon-large">👥</div>
+            <div className="stat-content-large">
+              <div className="stat-value-large">{stats.overview.totalUsers}</div>
+              <div className="stat-label-large">Toplam Kullanıcı</div>
+              {stats.period.newUsers > 0 && (
+                <div className="stat-change positive">+{stats.period.newUsers} yeni</div>
+              )}
+            </div>
+          </div>
+
+          <div className="stat-card-large stat-success">
+            <div className="stat-icon-large">⚔️</div>
+            <div className="stat-content-large">
+              <div className="stat-value-large">{stats.overview.totalBattles}</div>
+              <div className="stat-label-large">Toplam Battle</div>
+              {stats.period.battles > 0 && (
+                <div className="stat-change positive">+{stats.period.battles} yeni</div>
+              )}
+            </div>
+          </div>
+
+          <div className="stat-card-large stat-info">
+            <div className="stat-icon-large">🎓</div>
+            <div className="stat-content-large">
+              <div className="stat-value-large">{stats.overview.totalWorkshops}</div>
+              <div className="stat-label-large">Toplam Workshop</div>
+              {stats.period.workshops > 0 && (
+                <div className="stat-change positive">+{stats.period.workshops} yeni</div>
+              )}
+            </div>
+          </div>
+
+          <div className="stat-card-large stat-warning">
+            <div className="stat-icon-large">💰</div>
+            <div className="stat-content-large">
+              <div className="stat-value-large">₺{stats.revenue.total.toLocaleString()}</div>
+              <div className="stat-label-large">Toplam Gelir</div>
+              {stats.revenue.inPeriod > 0 && (
+                <div className="stat-change positive">+₺{stats.revenue.inPeriod.toLocaleString()}</div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Charts Row */}
+        <div className="charts-row">
+          {/* Daily Battles Chart */}
+          <div className="chart-card">
+            <h3>📊 Günlük Battle Trendi</h3>
+            <div className="chart-container">
+              <div className="bar-chart">
+                {stats.trends.dailyBattles.map((day, index) => {
+                  const maxCount = Math.max(...stats.trends.dailyBattles.map(d => d.count));
+                  const height = maxCount > 0 ? (day.count / maxCount) * 100 : 0;
+                  
+                  return (
+                    <div key={index} className="bar-item">
+                      <div className="bar-wrapper">
+                        <div 
+                          className="bar" 
+                          style={{ height: `${height}%` }}
+                          title={`${day.count} battle`}
+                        >
+                          {day.count > 0 && <span className="bar-value">{day.count}</span>}
+                        </div>
+                      </div>
+                      <div className="bar-label">{day.label}</div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+
+          {/* Daily Users Chart */}
+          <div className="chart-card">
+            <h3>👥 Günlük Kayıt Trendi</h3>
+            <div className="chart-container">
+              <div className="bar-chart">
+                {stats.trends.dailyUsers.map((day, index) => {
+                  const maxCount = Math.max(...stats.trends.dailyUsers.map(d => d.count));
+                  const height = maxCount > 0 ? (day.count / maxCount) * 100 : 0;
+                  
+                  return (
+                    <div key={index} className="bar-item">
+                      <div className="bar-wrapper">
+                        <div 
+                          className="bar bar-user" 
+                          style={{ height: `${height}%` }}
+                          title={`${day.count} kullanıcı`}
+                        >
+                          {day.count > 0 && <span className="bar-value">{day.count}</span>}
+                        </div>
+                      </div>
+                      <div className="bar-label">{day.label}</div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Top Dancers */}
+        <div className="section-card">
+          <h3>🏆 En Aktif Dansçılar</h3>
+          <div className="top-dancers-list">
+            {stats.users.topDancers.slice(0, 5).map((dancer, index) => (
+              <div key={dancer.id} className="dancer-item">
+                <div className="dancer-rank">#{index + 1}</div>
+                <div className="dancer-avatar">
+                  {dancer.avatar ? (
+                    <img src={dancer.avatar} alt={dancer.name} />
+                  ) : (
+                    <div className="avatar-placeholder">{dancer.name.charAt(0)}</div>
+                  )}
+                </div>
+                <div className="dancer-info">
+                  <div className="dancer-name">{dancer.name}</div>
+                  <div className="dancer-styles">{dancer.danceStyles.join(', ')}</div>
+                </div>
+                <div className="dancer-stats">
+                  <div className="stat-item">
+                    <span className="stat-label">Rating</span>
+                    <span className="stat-value">{dancer.rating}</span>
+                  </div>
+                  <div className="stat-item">
+                    <span className="stat-label">Battles</span>
+                    <span className="stat-value">{dancer.totalBattles}</span>
+                  </div>
+                  <div className="stat-item">
+                    <span className="stat-label">Kazanma</span>
+                    <span className="stat-value">{dancer.winRate}%</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Top Studios */}
+        <div className="section-card">
+          <h3>🏢 En Popüler Stüdyolar</h3>
+          <div className="top-studios-grid">
+            {stats.battles.topStudios.map((studio, index) => (
+              <div key={studio.id} className="studio-card-small">
+                <div className="studio-rank">#{index + 1}</div>
+                <div className="studio-icon">🏢</div>
+                <div className="studio-name">{studio.name}</div>
+                <div className="studio-location">{studio.city}</div>
+                <div className="studio-battles">{studio._count.battleRequests} battle</div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
+    );
+  };
 
-      {/* Stats Grid */}
-      <div className="stats-container">
-        <div className="stat-card stat-primary">
-          <div className="stat-icon">⚔️</div>
-          <div className="stat-content">
-            <div className="stat-value">{battles.length}</div>
-            <div className="stat-label">Toplam Battle</div>
-          </div>
-        </div>
-        <div className="stat-card stat-success">
-          <div className="stat-icon">✅</div>
-          <div className="stat-content">
-            <div className="stat-value">{assignableBattles.length}</div>
-            <div className="stat-label">Hakem Atanabilir</div>
-          </div>
-        </div>
-        <div className="stat-card stat-info">
-          <div className="stat-icon">⚖️</div>
-          <div className="stat-content">
-            <div className="stat-value">{referees.length}</div>
-            <div className="stat-label">Kayıtlı Hakem</div>
-          </div>
-        </div>
-        <div className="stat-card stat-warning">
-          <div className="stat-icon">🎯</div>
-          <div className="stat-content">
-            <div className="stat-value">{battles.filter(b => b.referee).length}</div>
-            <div className="stat-label">Hakem Atanmış</div>
-          </div>
-        </div>
-      </div>
+  const renderBattlesTab = () => {
+    // Mevcut battle yönetimi kodu buraya gelecek
+    const assignableBattles = battles.filter(b => 
+      ['CONFIRMED', 'BATTLE_SCHEDULED'].includes(b.status)
+    );
 
-      {/* Warning Box */}
-      {referees.length === 0 && (
-        <div className="alert alert-warning">
-          <div className="alert-icon">⚠️</div>
-          <div className="alert-content">
-            <strong>Dikkat!</strong> Sistemde kayıtlı hakem bulunmuyor. 
-            Hakem ataması yapabilmek için önce REFEREE rolünde kullanıcı kayıt etmeniz gerekiyor.
-          </div>
-        </div>
-      )}
+    const getFilteredBattles = () => {
+      if (filterStatus === 'needsReferee') {
+        return assignableBattles.filter(b => !b.referee);
+      }
+      if (filterStatus === 'assigned') {
+        return assignableBattles.filter(b => b.referee);
+      }
+      return assignableBattles;
+    };
 
-      {/* Battles Section */}
-      <div className="battles-section">
+    const filteredBattles = getFilteredBattles();
+
+    return (
+      <div className="battles-management">
+        {/* Mevcut battle yönetimi kodu */}
+        {referees.length === 0 && (
+          <div className="alert alert-warning">
+            <div className="alert-icon">⚠️</div>
+            <div className="alert-content">
+              <strong>Dikkat!</strong> Sistemde kayıtlı hakem bulunmuyor. 
+              Hakem ataması yapabilmek için önce REFEREE rolünde kullanıcı kayıt etmeniz gerekiyor.
+            </div>
+          </div>
+        )}
+
         <div className="section-header">
           <h2>⚔️ Battle Yönetimi & Hakem Atama</h2>
           {assignableBattles.length > 0 && (
@@ -205,7 +416,7 @@ const AdminPanel = ({ onBack }) => {
             </div>
           )}
         </div>
-        
+
         {filteredBattles.length === 0 ? (
           <div className="empty-state">
             <div className="empty-icon">
@@ -232,7 +443,7 @@ const AdminPanel = ({ onBack }) => {
               
               return (
                 <div key={battle.id} className={`battle-card ${isAssigning ? 'expanded' : ''}`}>
-                  {/* Battle Header */}
+                  {/* Mevcut battle card kodu aynı kalacak */}
                   <div className="battle-card-header">
                     <div className="battle-title-section">
                       <h3 className="battle-title">{battle.title || 'Battle'}</h3>
@@ -250,7 +461,6 @@ const AdminPanel = ({ onBack }) => {
                     </span>
                   </div>
 
-                  {/* Participants */}
                   <div className="participants-row">
                     <div className="participant-box">
                       <div className="participant-avatar">
@@ -290,7 +500,6 @@ const AdminPanel = ({ onBack }) => {
                     </div>
                   </div>
 
-                  {/* Battle Details */}
                   <div className="battle-details">
                     {battle.selectedStudio && (
                       <div className="detail-item">
@@ -318,7 +527,6 @@ const AdminPanel = ({ onBack }) => {
                     )}
                   </div>
 
-                  {/* Referee Section */}
                   <div className="referee-section">
                     {battle.referee ? (
                       <div className="referee-assigned">
@@ -353,7 +561,6 @@ const AdminPanel = ({ onBack }) => {
                     )}
                   </div>
 
-                  {/* Referee Selector */}
                   {isAssigning && (
                     <div className="referee-selector">
                       <div className="selector-header">
@@ -385,6 +592,66 @@ const AdminPanel = ({ onBack }) => {
             })}
           </div>
         )}
+      </div>
+    );
+  };
+
+  return (
+    <div className="admin-panel-root">
+      {/* Header */}
+      <div className="admin-header">
+        <button className="back-btn" onClick={onBack}>
+          <span className="back-icon">←</span>
+          <span>Geri</span>
+        </button>
+        <div className="header-title">
+          <h1>👑 Admin Paneli</h1>
+          <p>Yönetim ve kontrol merkezi</p>
+        </div>
+      </div>
+
+      {/* Navigation Tabs */}
+      <div className="admin-nav">
+        <button 
+          className={`nav-tab ${activeTab === 'stats' ? 'active' : ''}`}
+          onClick={() => setActiveTab('stats')}
+        >
+          <span className="nav-icon">📊</span>
+          <span>İstatistikler</span>
+        </button>
+        <button 
+          className={`nav-tab ${activeTab === 'battles' ? 'active' : ''}`}
+          onClick={() => setActiveTab('battles')}
+        >
+          <span className="nav-icon">⚔️</span>
+          <span>Battle Yönetimi</span>
+        </button>
+        <button 
+          className={`nav-tab ${activeTab === 'users' ? 'active' : ''}`}
+          onClick={() => setActiveTab('users')}
+        >
+          <span className="nav-icon">👥</span>
+          <span>Kullanıcılar</span>
+        </button>
+        <button 
+          className={`nav-tab ${activeTab === 'badges' ? 'active' : ''}`}
+          onClick={() => setActiveTab('badges')}
+        >
+          <span className="nav-icon">🎖️</span>
+          <span>Rozetler</span>
+        </button>
+        <button 
+          className={`nav-tab ${activeTab === 'notifications' ? 'active' : ''}`}
+          onClick={() => setActiveTab('notifications')}
+        >
+          <span className="nav-icon">📢</span>
+          <span>Bildirimler</span>
+        </button>
+      </div>
+
+      {/* Main Content */}
+      <div className="admin-content">
+        {renderContent()}
       </div>
 
       <style jsx>{`
@@ -1040,10 +1307,463 @@ const AdminPanel = ({ onBack }) => {
           color: #9ca3af;
         }
 
+        /* Navigation Tabs */
+        .admin-nav {
+          display: flex;
+          gap: 0.5rem;
+          background: rgba(255, 255, 255, 0.03);
+          padding: 0.75rem;
+          border-radius: 16px;
+          margin-bottom: 2rem;
+          overflow-x: auto;
+          border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .nav-tab {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          background: transparent;
+          border: none;
+          color: #9ca3af;
+          padding: 0.75rem 1.5rem;
+          border-radius: 12px;
+          cursor: pointer;
+          font-size: 0.95rem;
+          font-weight: 500;
+          transition: all 0.3s;
+          white-space: nowrap;
+          flex-shrink: 0;
+        }
+
+        .nav-tab:hover {
+          background: rgba(255, 255, 255, 0.05);
+          color: white;
+        }
+
+        .nav-tab.active {
+          background: linear-gradient(90deg, #dc2626, #991b1b);
+          color: white;
+          box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+        }
+
+        .nav-icon {
+          font-size: 1.2rem;
+        }
+
+        /* Admin Content */
+        .admin-content {
+          animation: fadeIn 0.3s ease;
+        }
+
+        /* Coming Soon */
+        .coming-soon {
+          text-align: center;
+          padding: 6rem 2rem;
+        }
+
+        .coming-soon-icon {
+          font-size: 6rem;
+          margin-bottom: 1.5rem;
+          opacity: 0.5;
+        }
+
+        .coming-soon h3 {
+          font-size: 2rem;
+          color: white;
+          margin: 0 0 0.5rem 0;
+        }
+
+        .coming-soon p {
+          color: #9ca3af;
+          font-size: 1.1rem;
+        }
+
+        /* Stats Tab */
+        .stats-tab {
+          animation: slideUp 0.4s ease;
+        }
+
+        @keyframes slideUp {
+          from {
+            opacity: 0;
+            transform: translateY(20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        /* Period Selector */
+        .period-selector {
+          display: flex;
+          gap: 0.75rem;
+          margin-bottom: 2rem;
+          flex-wrap: wrap;
+        }
+
+        .period-btn {
+          background: rgba(255, 255, 255, 0.05);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          color: #9ca3af;
+          padding: 0.75rem 1.5rem;
+          border-radius: 10px;
+          cursor: pointer;
+          font-size: 0.95rem;
+          font-weight: 500;
+          transition: all 0.3s;
+        }
+
+        .period-btn:hover {
+          background: rgba(255, 255, 255, 0.08);
+          color: white;
+        }
+
+        .period-btn.active {
+          background: linear-gradient(90deg, #dc2626, #991b1b);
+          color: white;
+          border-color: transparent;
+          box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+        }
+
+        /* Large Stats Grid */
+        .stats-grid-large {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+          gap: 1.5rem;
+          margin-bottom: 2rem;
+        }
+
+        .stat-card-large {
+          background: rgba(255, 255, 255, 0.03);
+          backdrop-filter: blur(10px);
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          border-radius: 16px;
+          padding: 2rem;
+          display: flex;
+          align-items: center;
+          gap: 1.5rem;
+          transition: all 0.3s ease;
+          position: relative;
+          overflow: hidden;
+        }
+
+        .stat-card-large::before {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          height: 4px;
+          background: linear-gradient(90deg, transparent, var(--stat-color), transparent);
+        }
+
+        .stat-card-large:hover {
+          transform: translateY(-4px);
+          box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4);
+        }
+
+        .stat-icon-large {
+          font-size: 3.5rem;
+          opacity: 0.9;
+        }
+
+        .stat-content-large {
+          flex: 1;
+        }
+
+        .stat-value-large {
+          font-size: 3rem;
+          font-weight: 700;
+          color: var(--stat-color);
+          line-height: 1;
+          margin-bottom: 0.5rem;
+        }
+
+        .stat-label-large {
+          font-size: 1rem;
+          color: #9ca3af;
+          font-weight: 500;
+          margin-bottom: 0.5rem;
+        }
+
+        .stat-change {
+          display: inline-block;
+          font-size: 0.9rem;
+          padding: 0.25rem 0.75rem;
+          border-radius: 6px;
+          font-weight: 600;
+        }
+
+        .stat-change.positive {
+          background: rgba(16, 185, 129, 0.2);
+          color: #10b981;
+        }
+
+        /* Charts Row */
+        .charts-row {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+          gap: 1.5rem;
+          margin-bottom: 2rem;
+        }
+
+        .chart-card {
+          background: rgba(255, 255, 255, 0.03);
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          border-radius: 16px;
+          padding: 1.5rem;
+        }
+
+        .chart-card h3 {
+          font-size: 1.2rem;
+          color: white;
+          margin: 0 0 1.5rem 0;
+        }
+
+        .chart-container {
+          height: 250px;
+        }
+
+        .bar-chart {
+          display: flex;
+          align-items: flex-end;
+          justify-content: space-between;
+          height: 100%;
+          gap: 0.5rem;
+        }
+
+        .bar-item {
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+        }
+
+        .bar-wrapper {
+          width: 100%;
+          height: 200px;
+          display: flex;
+          align-items: flex-end;
+          justify-content: center;
+        }
+
+        .bar {
+          width: 100%;
+          background: linear-gradient(180deg, #dc2626, #991b1b);
+          border-radius: 8px 8px 0 0;
+          position: relative;
+          min-height: 4px;
+          transition: all 0.3s;
+          display: flex;
+          align-items: flex-start;
+          justify-content: center;
+          padding-top: 0.5rem;
+        }
+
+        .bar:hover {
+          box-shadow: 0 0 20px rgba(220, 38, 38, 0.5);
+          transform: scaleY(1.05);
+        }
+
+        .bar-user {
+          background: linear-gradient(180deg, #3b82f6, #1e40af);
+        }
+
+        .bar-user:hover {
+          box-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
+        }
+
+        .bar-value {
+          font-size: 0.75rem;
+          color: white;
+          font-weight: 600;
+        }
+
+        .bar-label {
+          margin-top: 0.5rem;
+          font-size: 0.75rem;
+          color: #9ca3af;
+          text-align: center;
+        }
+
+        /* Section Card */
+        .section-card {
+          background: rgba(255, 255, 255, 0.03);
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          border-radius: 16px;
+          padding: 1.5rem;
+          margin-bottom: 1.5rem;
+        }
+
+        .section-card h3 {
+          font-size: 1.3rem;
+          color: white;
+          margin: 0 0 1.5rem 0;
+        }
+
+        /* Top Dancers List */
+        .top-dancers-list {
+          display: flex;
+          flex-direction: column;
+          gap: 1rem;
+        }
+
+        .dancer-item {
+          display: flex;
+          align-items: center;
+          gap: 1.5rem;
+          background: rgba(255, 255, 255, 0.03);
+          border: 1px solid rgba(255, 255, 255, 0.05);
+          border-radius: 12px;
+          padding: 1rem;
+          transition: all 0.3s;
+        }
+
+        .dancer-item:hover {
+          background: rgba(255, 255, 255, 0.05);
+          transform: translateX(4px);
+        }
+
+        .dancer-rank {
+          font-size: 1.5rem;
+          font-weight: 700;
+          color: #dc2626;
+          min-width: 40px;
+          text-align: center;
+        }
+
+        .dancer-avatar {
+          width: 60px;
+          height: 60px;
+          border-radius: 50%;
+          overflow: hidden;
+          flex-shrink: 0;
+        }
+
+        .dancer-avatar img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+        }
+
+        .dancer-info {
+          flex: 1;
+          min-width: 0;
+        }
+
+        .dancer-name {
+          font-size: 1.1rem;
+          font-weight: 600;
+          color: white;
+          margin-bottom: 0.25rem;
+        }
+
+        .dancer-styles {
+          font-size: 0.9rem;
+          color: #9ca3af;
+        }
+
+        .dancer-stats {
+          display: flex;
+          gap: 2rem;
+        }
+
+        .stat-item {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          text-align: center;
+        }
+
+        .stat-item .stat-label {
+          font-size: 0.75rem;
+          color: #9ca3af;
+          margin-bottom: 0.25rem;
+        }
+
+        .stat-item .stat-value {
+          font-size: 1.2rem;
+          font-weight: 700;
+          color: #dc2626;
+        }
+
+        /* Top Studios Grid */
+        .top-studios-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+          gap: 1rem;
+        }
+
+        .studio-card-small {
+          background: rgba(255, 255, 255, 0.03);
+          border: 1px solid rgba(255, 255, 255, 0.05);
+          border-radius: 12px;
+          padding: 1.5rem;
+          text-align: center;
+          transition: all 0.3s;
+          position: relative;
+        }
+
+        .studio-card-small:hover {
+          background: rgba(255, 255, 255, 0.05);
+          transform: translateY(-4px);
+        }
+
+        .studio-rank {
+          position: absolute;
+          top: 0.75rem;
+          right: 0.75rem;
+          background: linear-gradient(135deg, #dc2626, #991b1b);
+          color: white;
+          width: 32px;
+          height: 32px;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-weight: 700;
+          font-size: 0.9rem;
+        }
+
+        .studio-icon {
+          font-size: 2.5rem;
+          margin-bottom: 0.75rem;
+        }
+
+        .studio-name {
+          font-size: 1rem;
+          font-weight: 600;
+          color: white;
+          margin-bottom: 0.5rem;
+        }
+
+        .studio-location {
+          font-size: 0.85rem;
+          color: #9ca3af;
+          margin-bottom: 0.75rem;
+        }
+
+        .studio-battles {
+          font-size: 0.9rem;
+          color: #dc2626;
+          font-weight: 600;
+        }
+
+        /* Battles Management */
+        .battles-management {
+          animation: slideUp 0.4s ease;
+        }
+
         /* Responsive */
         @media (max-width: 1024px) {
-          .stats-container {
+          .stats-grid-large {
             grid-template-columns: repeat(2, 1fr);
+          }
+
+          .charts-row {
+            grid-template-columns: 1fr;
           }
         }
 
@@ -1056,7 +1776,27 @@ const AdminPanel = ({ onBack }) => {
             font-size: 2rem;
           }
 
-          .stats-container {
+          .admin-nav {
+            overflow-x: auto;
+          }
+
+          .stats-grid-large {
+            grid-template-columns: 1fr;
+          }
+
+          .period-selector {
+            overflow-x: auto;
+          }
+
+          .charts-row {
+            grid-template-columns: 1fr;
+          }
+
+          .dancer-stats {
+            gap: 1rem;
+          }
+
+          .top-studios-grid {
             grid-template-columns: 1fr;
           }
 
