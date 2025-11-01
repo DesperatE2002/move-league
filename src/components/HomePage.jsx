@@ -335,7 +335,7 @@ const HomePage = ({ user = "Admin" }) => {
           <section className="welcome-section animate-fade">
             <h2 className="welcome-title">Hoş Geldin, {currentUser?.name || user}! 👋</h2>
             <p className="welcome-subtitle">
-              Move League yönetim panelindesin. Adana'nın en büyük dans platformunu buradan yönetebilirsin.
+              Dünyanın ilk sosyal dans ligine hoş geldin! Move League ile dans kariyerini zirveye taşı.
             </p>
           </section>
 

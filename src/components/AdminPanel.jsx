@@ -13,6 +13,18 @@ const AdminPanel = ({ onBack }) => {
   const [assigningReferee, setAssigningReferee] = useState(null);
   const [filterStatus, setFilterStatus] = useState("all");
   const [period, setPeriod] = useState("week");
+  
+  // Users tab state
+  const [users, setUsers] = useState([]);
+  const [usersPage, setUsersPage] = useState(1);
+  const [usersTotal, setUsersTotal] = useState(0);
+  const [usersSearch, setUsersSearch] = useState("");
+  const [usersRoleFilter, setUsersRoleFilter] = useState("all");
+  const [selectedUsers, setSelectedUsers] = useState([]);
+  const [showModal, setShowModal] = useState(null); // "role", "rating", "profile", "badges", "notification", "delete", "bulkNotification", "bulkBadge"
+  const [modalData, setModalData] = useState(null);
+  const [actionLoading, setActionLoading] = useState(false);
+  
   const currentUser = authApi.getCurrentUser();
 
   useEffect(() => {
@@ -22,7 +34,7 @@ const AdminPanel = ({ onBack }) => {
       return;
     }
     loadData();
-  }, [activeTab, period]);
+  }, [activeTab, period, usersPage, usersSearch, usersRoleFilter]);
 
   const loadData = async () => {
     try {
@@ -56,6 +68,26 @@ const AdminPanel = ({ onBack }) => {
           const data = await usersResponse.json();
           setReferees(data.data || []);
         }
+      } else if (activeTab === "users") {
+        const params = new URLSearchParams({
+          page: usersPage.toString(),
+          limit: "20",
+          ...(usersSearch && { search: usersSearch }),
+          ...(usersRoleFilter !== "all" && { role: usersRoleFilter })
+        });
+
+        const usersResponse = await fetch(`/api/admin/users?${params}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json"
+          }
+        });
+        
+        if (usersResponse.ok) {
+          const data = await usersResponse.json();
+          setUsers(data.data.users || []);
+          setUsersTotal(data.data.total || 0);
+        }
       }
 
       console.log("✅ Admin panel verileri yüklendi");
@@ -84,6 +116,82 @@ const AdminPanel = ({ onBack }) => {
     } finally {
       setAssigningReferee(null);
     }
+  };
+
+  // User management handlers
+  const handleUserAction = async (action, userId, payload) => {
+    try {
+      setActionLoading(true);
+      const token = localStorage.getItem("token");
+
+      const response = await fetch("/api/admin/users", {
+        method: "PATCH",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ action, userId, ...payload })
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "İşlem başarısız");
+      }
+
+      alert("✅ İşlem başarılı!");
+      setShowModal(null);
+      setModalData(null);
+      await loadData();
+    } catch (err) {
+      console.error("❌ İşlem hatası:", err);
+      alert("Hata: " + err.message);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleBulkAction = async (action, payload) => {
+    try {
+      setActionLoading(true);
+      const token = localStorage.getItem("token");
+
+      const response = await fetch("/api/admin/users", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ action, ...payload })
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "İşlem başarısız");
+      }
+
+      alert("✅ Toplu işlem başarılı!");
+      setShowModal(null);
+      setSelectedUsers([]);
+      await loadData();
+    } catch (err) {
+      console.error("❌ Toplu işlem hatası:", err);
+      alert("Hata: " + err.message);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const openModal = (type, user = null) => {
+    setShowModal(type);
+    setModalData(user);
+  };
+
+  const toggleUserSelection = (userId) => {
+    setSelectedUsers(prev => 
+      prev.includes(userId) 
+        ? prev.filter(id => id !== userId)
+        : [...prev, userId]
+    );
   };
 
   const getStatusBadge = (status) => {
@@ -425,7 +533,215 @@ const AdminPanel = ({ onBack }) => {
           </div>
         )}
 
-        {!["stats", "battles"].includes(activeTab) && (
+        {activeTab === "users" && (
+          <div className="users-management">
+            <div className="section-header">
+              <h2>👥 Kullanıcı Yönetimi</h2>
+              <div className="users-controls">
+                <input
+                  type="text"
+                  className="search-input"
+                  placeholder="🔍 Kullanıcı ara..."
+                  value={usersSearch}
+                  onChange={(e) => {
+                    setUsersSearch(e.target.value);
+                    setUsersPage(1);
+                  }}
+                />
+                <select
+                  className="role-filter"
+                  value={usersRoleFilter}
+                  onChange={(e) => {
+                    setUsersRoleFilter(e.target.value);
+                    setUsersPage(1);
+                  }}
+                >
+                  <option value="all">Tüm Roller</option>
+                  <option value="DANCER">Dansçı</option>
+                  <option value="INSTRUCTOR">Eğitmen</option>
+                  <option value="STUDIO">Stüdyo</option>
+                  <option value="REFEREE">Hakem</option>
+                  <option value="ADMIN">Admin</option>
+                </select>
+              </div>
+            </div>
+
+            {selectedUsers.length > 0 && (
+              <div className="bulk-actions-bar">
+                <div className="bulk-info">
+                  <span className="bulk-count">{selectedUsers.length} kullanıcı seçildi</span>
+                  <button className="btn-link" onClick={() => setSelectedUsers([])}>Seçimi Temizle</button>
+                </div>
+                <div className="bulk-buttons">
+                  <button className="btn-secondary" onClick={() => openModal("bulkNotification")}>
+                    📢 Toplu Bildirim
+                  </button>
+                  <button className="btn-primary" onClick={() => openModal("bulkBadge")}>
+                    🎖️ Toplu Rozet
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {users.length === 0 ? (
+              <div className="empty-state">
+                <div className="empty-icon">👥</div>
+                <h3>Kullanıcı bulunamadı</h3>
+              </div>
+            ) : (
+              <div className="users-table-container">
+                <table className="users-table">
+                  <thead>
+                    <tr>
+                      <th>
+                        <input
+                          type="checkbox"
+                          checked={users.length > 0 && selectedUsers.length === users.length}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setSelectedUsers(users.map(u => u.id));
+                            } else {
+                              setSelectedUsers([]);
+                            }
+                          }}
+                        />
+                      </th>
+                      <th>Kullanıcı</th>
+                      <th>Rol</th>
+                      <th>Rating</th>
+                      <th>Rozetler</th>
+                      <th>Kayıt</th>
+                      <th>İşlemler</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {users.map(user => (
+                      <tr key={user.id} className={selectedUsers.includes(user.id) ? "selected" : ""}>
+                        <td>
+                          <input
+                            type="checkbox"
+                            checked={selectedUsers.includes(user.id)}
+                            onChange={() => toggleUserSelection(user.id)}
+                          />
+                        </td>
+                        <td>
+                          <div className="user-cell">
+                            <div className="user-avatar">{user.name?.charAt(0) || "?"}</div>
+                            <div className="user-info">
+                              <div className="user-name">{user.name || "İsimsiz"}</div>
+                              <div className="user-email">{user.email}</div>
+                            </div>
+                          </div>
+                        </td>
+                        <td>
+                          <span className={`role-badge role-${user.role?.toLowerCase()}`}>
+                            {user.role === "DANCER" ? "🕺 Dansçı" :
+                             user.role === "INSTRUCTOR" ? "👨‍🏫 Eğitmen" :
+                             user.role === "STUDIO" ? "🏢 Stüdyo" :
+                             user.role === "REFEREE" ? "⚖️ Hakem" :
+                             user.role === "ADMIN" ? "⚡ Admin" : user.role}
+                          </span>
+                        </td>
+                        <td>
+                          <span className="rating-value">{user.rating || 1000}</span>
+                        </td>
+                        <td>
+                          <div className="badges-cell">
+                            {user.badges && user.badges.length > 0 ? (
+                              user.badges.slice(0, 3).map((badge, idx) => (
+                                <span key={idx} className="mini-badge">{badge}</span>
+                              ))
+                            ) : (
+                              <span className="no-badges">-</span>
+                            )}
+                            {user.badges && user.badges.length > 3 && (
+                              <span className="more-badges">+{user.badges.length - 3}</span>
+                            )}
+                          </div>
+                        </td>
+                        <td>
+                          <span className="date-text">
+                            {new Date(user.createdAt).toLocaleDateString("tr-TR")}
+                          </span>
+                        </td>
+                        <td>
+                          <div className="action-buttons">
+                            <button
+                              className="action-btn action-role"
+                              onClick={() => openModal("role", user)}
+                              title="Rol Değiştir"
+                            >
+                              🔄
+                            </button>
+                            <button
+                              className="action-btn action-rating"
+                              onClick={() => openModal("rating", user)}
+                              title="Rating Düzenle"
+                            >
+                              ⭐
+                            </button>
+                            <button
+                              className="action-btn action-profile"
+                              onClick={() => openModal("profile", user)}
+                              title="Profil Düzenle"
+                            >
+                              ✏️
+                            </button>
+                            <button
+                              className="action-btn action-badges"
+                              onClick={() => openModal("badges", user)}
+                              title="Rozetler"
+                            >
+                              🎖️
+                            </button>
+                            <button
+                              className="action-btn action-notification"
+                              onClick={() => openModal("notification", user)}
+                              title="Bildirim Gönder"
+                            >
+                              📧
+                            </button>
+                            <button
+                              className="action-btn action-delete"
+                              onClick={() => openModal("delete", user)}
+                              title="Sil"
+                            >
+                              🗑️
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            {usersTotal > 20 && (
+              <div className="pagination">
+                <button
+                  className="pagination-btn"
+                  disabled={usersPage === 1}
+                  onClick={() => setUsersPage(p => p - 1)}
+                >
+                  ← Önceki
+                </button>
+                <span className="pagination-info">
+                  Sayfa {usersPage} / {Math.ceil(usersTotal / 20)}
+                </span>
+                <button
+                  className="pagination-btn"
+                  disabled={usersPage >= Math.ceil(usersTotal / 20)}
+                  onClick={() => setUsersPage(p => p + 1)}
+                >
+                  Sonraki →
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+
+        {!["stats", "battles", "users"].includes(activeTab) && (
           <div className="coming-soon">
             <div className="coming-soon-icon">🚧</div>
             <h3>Yakında Gelecek</h3>
@@ -433,6 +749,368 @@ const AdminPanel = ({ onBack }) => {
           </div>
         )}
       </div>
+
+      {/* Modals */}
+      {showModal === "role" && modalData && (
+        <div className="modal-overlay" onClick={() => setShowModal(null)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>🔄 Rol Değiştir</h3>
+              <button className="modal-close" onClick={() => setShowModal(null)}>×</button>
+            </div>
+            <div className="modal-body">
+              <p><strong>{modalData.name}</strong> için yeni rol seçin:</p>
+              <select
+                className="modal-select"
+                defaultValue={modalData.role}
+                id="newRole"
+              >
+                <option value="DANCER">🕺 Dansçı</option>
+                <option value="INSTRUCTOR">👨‍🏫 Eğitmen</option>
+                <option value="STUDIO">🏢 Stüdyo</option>
+                <option value="REFEREE">⚖️ Hakem</option>
+                <option value="ADMIN">⚡ Admin</option>
+              </select>
+            </div>
+            <div className="modal-footer">
+              <button className="btn-secondary" onClick={() => setShowModal(null)}>İptal</button>
+              <button
+                className="btn-primary"
+                disabled={actionLoading}
+                onClick={() => {
+                  const newRole = document.getElementById("newRole").value;
+                  handleUserAction("UPDATE_ROLE", modalData.id, { role: newRole });
+                }}
+              >
+                {actionLoading ? "Kaydediliyor..." : "Kaydet"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showModal === "rating" && modalData && (
+        <div className="modal-overlay" onClick={() => setShowModal(null)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>⭐ Rating Düzenle</h3>
+              <button className="modal-close" onClick={() => setShowModal(null)}>×</button>
+            </div>
+            <div className="modal-body">
+              <p><strong>{modalData.name}</strong> için yeni rating:</p>
+              <input
+                type="number"
+                className="modal-input"
+                defaultValue={modalData.rating || 1000}
+                id="newRating"
+                min="0"
+                max="3000"
+              />
+              <small className="input-hint">ELO rating sistemi (0-3000 arası)</small>
+            </div>
+            <div className="modal-footer">
+              <button className="btn-secondary" onClick={() => setShowModal(null)}>İptal</button>
+              <button
+                className="btn-primary"
+                disabled={actionLoading}
+                onClick={() => {
+                  const newRating = parseInt(document.getElementById("newRating").value);
+                  handleUserAction("UPDATE_RATING", modalData.id, { rating: newRating });
+                }}
+              >
+                {actionLoading ? "Kaydediliyor..." : "Kaydet"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showModal === "profile" && modalData && (
+        <div className="modal-overlay" onClick={() => setShowModal(null)}>
+          <div className="modal-content modal-large" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>✏️ Profil Düzenle</h3>
+              <button className="modal-close" onClick={() => setShowModal(null)}>×</button>
+            </div>
+            <div className="modal-body">
+              <div className="form-group">
+                <label>Bio</label>
+                <textarea
+                  className="modal-textarea"
+                  defaultValue={modalData.bio || ""}
+                  id="newBio"
+                  rows="3"
+                  placeholder="Kısa biyografi..."
+                />
+              </div>
+              <div className="form-group">
+                <label>Dans Stilleri (virgülle ayırın)</label>
+                <input
+                  type="text"
+                  className="modal-input"
+                  defaultValue={modalData.danceStyles?.join(", ") || ""}
+                  id="newDanceStyles"
+                  placeholder="Hip-Hop, Breaking, Popping..."
+                />
+              </div>
+              <div className="form-group">
+                <label>Deneyim Yılı</label>
+                <input
+                  type="number"
+                  className="modal-input"
+                  defaultValue={modalData.experienceYears || 0}
+                  id="newExperience"
+                  min="0"
+                  max="50"
+                />
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button className="btn-secondary" onClick={() => setShowModal(null)}>İptal</button>
+              <button
+                className="btn-primary"
+                disabled={actionLoading}
+                onClick={() => {
+                  const bio = document.getElementById("newBio").value;
+                  const danceStylesStr = document.getElementById("newDanceStyles").value;
+                  const danceStyles = danceStylesStr ? danceStylesStr.split(",").map(s => s.trim()).filter(Boolean) : [];
+                  const experienceYears = parseInt(document.getElementById("newExperience").value);
+                  handleUserAction("UPDATE_PROFILE", modalData.id, { bio, danceStyles, experienceYears });
+                }}
+              >
+                {actionLoading ? "Kaydediliyor..." : "Kaydet"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showModal === "badges" && modalData && (
+        <div className="modal-overlay" onClick={() => setShowModal(null)}>
+          <div className="modal-content modal-large" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>🎖️ Rozet Yönetimi</h3>
+              <button className="modal-close" onClick={() => setShowModal(null)}>×</button>
+            </div>
+            <div className="modal-body">
+              <p><strong>{modalData.name}</strong> mevcut rozetleri:</p>
+              <div className="badges-list">
+                {modalData.badges && modalData.badges.length > 0 ? (
+                  modalData.badges.map((badge, idx) => (
+                    <div key={idx} className="badge-item">
+                      <span className="badge-name">{badge}</span>
+                      <button
+                        className="badge-remove"
+                        onClick={() => handleUserAction("REMOVE_BADGE", modalData.id, { badge })}
+                        disabled={actionLoading}
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))
+                ) : (
+                  <p className="no-data">Henüz rozet yok</p>
+                )}
+              </div>
+              <div className="form-group" style={{ marginTop: "20px" }}>
+                <label>Yeni Rozet Ekle</label>
+                <input
+                  type="text"
+                  className="modal-input"
+                  id="newBadge"
+                  placeholder="🏆 Champion, 🔥 Fire Dancer..."
+                />
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button className="btn-secondary" onClick={() => setShowModal(null)}>Kapat</button>
+              <button
+                className="btn-primary"
+                disabled={actionLoading}
+                onClick={() => {
+                  const badge = document.getElementById("newBadge").value.trim();
+                  if (badge) {
+                    handleUserAction("ADD_BADGE", modalData.id, { badge });
+                    document.getElementById("newBadge").value = "";
+                  }
+                }}
+              >
+                {actionLoading ? "Ekleniyor..." : "Rozet Ekle"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showModal === "notification" && modalData && (
+        <div className="modal-overlay" onClick={() => setShowModal(null)}>
+          <div className="modal-content modal-large" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>📧 Bildirim Gönder</h3>
+              <button className="modal-close" onClick={() => setShowModal(null)}>×</button>
+            </div>
+            <div className="modal-body">
+              <p><strong>{modalData.name}</strong> kullanıcısına bildirim:</p>
+              <div className="form-group">
+                <label>Başlık</label>
+                <input
+                  type="text"
+                  className="modal-input"
+                  id="notifTitle"
+                  placeholder="Bildirim başlığı..."
+                />
+              </div>
+              <div className="form-group">
+                <label>Mesaj</label>
+                <textarea
+                  className="modal-textarea"
+                  id="notifMessage"
+                  rows="4"
+                  placeholder="Bildirim mesajı..."
+                />
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button className="btn-secondary" onClick={() => setShowModal(null)}>İptal</button>
+              <button
+                className="btn-primary"
+                disabled={actionLoading}
+                onClick={() => {
+                  const title = document.getElementById("notifTitle").value.trim();
+                  const message = document.getElementById("notifMessage").value.trim();
+                  if (title && message) {
+                    handleUserAction("SEND_NOTIFICATION", modalData.id, { title, message });
+                  } else {
+                    alert("Başlık ve mesaj gereklidir!");
+                  }
+                }}
+              >
+                {actionLoading ? "Gönderiliyor..." : "Gönder"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showModal === "delete" && modalData && (
+        <div className="modal-overlay" onClick={() => setShowModal(null)}>
+          <div className="modal-content modal-danger" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>🗑️ Kullanıcı Sil</h3>
+              <button className="modal-close" onClick={() => setShowModal(null)}>×</button>
+            </div>
+            <div className="modal-body">
+              <div className="warning-box">
+                <div className="warning-icon">⚠️</div>
+                <p><strong>DİKKAT!</strong> Bu işlem geri alınamaz.</p>
+              </div>
+              <p>
+                <strong>{modalData.name}</strong> ({modalData.email}) kullanıcısını silmek istediğinizden emin misiniz?
+              </p>
+            </div>
+            <div className="modal-footer">
+              <button className="btn-secondary" onClick={() => setShowModal(null)}>İptal</button>
+              <button
+                className="btn-danger"
+                disabled={actionLoading}
+                onClick={() => handleUserAction("DELETE_USER", modalData.id, {})}
+              >
+                {actionLoading ? "Siliniyor..." : "Evet, Sil"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showModal === "bulkNotification" && (
+        <div className="modal-overlay" onClick={() => setShowModal(null)}>
+          <div className="modal-content modal-large" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>📢 Toplu Bildirim</h3>
+              <button className="modal-close" onClick={() => setShowModal(null)}>×</button>
+            </div>
+            <div className="modal-body">
+              <p><strong>{selectedUsers.length} kullanıcıya</strong> bildirim gönderilecek:</p>
+              <div className="form-group">
+                <label>Başlık</label>
+                <input
+                  type="text"
+                  className="modal-input"
+                  id="bulkNotifTitle"
+                  placeholder="Bildirim başlığı..."
+                />
+              </div>
+              <div className="form-group">
+                <label>Mesaj</label>
+                <textarea
+                  className="modal-textarea"
+                  id="bulkNotifMessage"
+                  rows="4"
+                  placeholder="Bildirim mesajı..."
+                />
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button className="btn-secondary" onClick={() => setShowModal(null)}>İptal</button>
+              <button
+                className="btn-primary"
+                disabled={actionLoading}
+                onClick={() => {
+                  const title = document.getElementById("bulkNotifTitle").value.trim();
+                  const message = document.getElementById("bulkNotifMessage").value.trim();
+                  if (title && message) {
+                    handleBulkAction("BULK_NOTIFICATION", { userIds: selectedUsers, title, message });
+                  } else {
+                    alert("Başlık ve mesaj gereklidir!");
+                  }
+                }}
+              >
+                {actionLoading ? "Gönderiliyor..." : `${selectedUsers.length} Kişiye Gönder`}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showModal === "bulkBadge" && (
+        <div className="modal-overlay" onClick={() => setShowModal(null)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>🎖️ Toplu Rozet Ekle</h3>
+              <button className="modal-close" onClick={() => setShowModal(null)}>×</button>
+            </div>
+            <div className="modal-body">
+              <p><strong>{selectedUsers.length} kullanıcıya</strong> rozet eklenecek:</p>
+              <div className="form-group">
+                <label>Rozet</label>
+                <input
+                  type="text"
+                  className="modal-input"
+                  id="bulkBadge"
+                  placeholder="🏆 Champion, 🔥 Fire Dancer..."
+                />
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button className="btn-secondary" onClick={() => setShowModal(null)}>İptal</button>
+              <button
+                className="btn-primary"
+                disabled={actionLoading}
+                onClick={() => {
+                  const badge = document.getElementById("bulkBadge").value.trim();
+                  if (badge) {
+                    handleBulkAction("BULK_ADD_BADGE", { userIds: selectedUsers, badge });
+                  } else {
+                    alert("Rozet giriniz!");
+                  }
+                }}
+              >
+                {actionLoading ? "Ekleniyor..." : `${selectedUsers.length} Kişiye Ekle`}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
