@@ -67,7 +67,13 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      data: { users, pagination: { page, limit, total, totalPages: Math.ceil(total / limit) } }
+      data: { 
+        users, 
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit)
+      }
     });
   } catch (error: any) {
     return NextResponse.json({ success: false, message: error.message }, { status: 500 });
@@ -91,7 +97,7 @@ export async function PATCH(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { userId: targetUserId, action, data } = body;
+    const { action, userId: targetUserId, role, rating, bio, danceStyles, experienceYears, badge, title, message } = body;
 
     if (!targetUserId || !action) {
       return NextResponse.json({ success: false, message: "Eksik parametreler" }, { status: 400 });
@@ -103,14 +109,14 @@ export async function PATCH(request: NextRequest) {
       case "UPDATE_ROLE":
         result = await prisma.user.update({
           where: { id: targetUserId },
-          data: { role: data.role }
+          data: { role }
         });
         break;
 
       case "UPDATE_RATING":
         result = await prisma.user.update({
           where: { id: targetUserId },
-          data: { rating: parseInt(data.rating) }
+          data: { rating: parseInt(rating) }
         });
         break;
 
@@ -118,9 +124,9 @@ export async function PATCH(request: NextRequest) {
         result = await prisma.user.update({
           where: { id: targetUserId },
           data: {
-            bio: data.bio,
-            danceStyles: data.danceStyles,
-            experience: data.experience ? parseInt(data.experience) : null
+            bio,
+            danceStyles,
+            experience: experienceYears ? parseInt(experienceYears) : null
           }
         });
         break;
@@ -131,10 +137,10 @@ export async function PATCH(request: NextRequest) {
           select: { badges: true }
         });
         const currentBadges = user?.badges || [];
-        if (!currentBadges.includes(data.badgeId)) {
+        if (!currentBadges.includes(badge)) {
           result = await prisma.user.update({
             where: { id: targetUserId },
-            data: { badges: [...currentBadges, data.badgeId] }
+            data: { badges: [...currentBadges, badge] }
           });
         }
         break;
@@ -144,7 +150,7 @@ export async function PATCH(request: NextRequest) {
           where: { id: targetUserId },
           select: { badges: true }
         });
-        const filteredBadges = (userWithBadge?.badges || []).filter((b: string) => b !== data.badgeId);
+        const filteredBadges = (userWithBadge?.badges || []).filter((b: string) => b !== badge);
         result = await prisma.user.update({
           where: { id: targetUserId },
           data: { badges: filteredBadges }
@@ -156,8 +162,8 @@ export async function PATCH(request: NextRequest) {
           data: {
             userId: targetUserId,
             type: "BATTLE_REQUEST",
-            title: data.title || "Admin Mesajı",
-            message: data.message,
+            title: title || "Admin Mesajı",
+            message,
             isRead: false
           }
         });
@@ -201,7 +207,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { userIds, action, data } = body;
+    const { userIds, action, title, message, badge } = body;
 
     if (!userIds || !Array.isArray(userIds) || userIds.length === 0) {
       return NextResponse.json({ success: false, message: "Kullanıcı ID listesi gerekli" }, { status: 400 });
@@ -214,8 +220,8 @@ export async function POST(request: NextRequest) {
         const notifications = userIds.map((uid: string) => ({
           userId: uid,
           type: "BATTLE_REQUEST" as any,
-          title: data.title || "Admin Duyurusu",
-          message: data.message,
+          title: title || "Admin Duyurusu",
+          message,
           isRead: false
         }));
         
@@ -231,10 +237,10 @@ export async function POST(request: NextRequest) {
             select: { badges: true }
           });
           const currentBadges = user?.badges || [];
-          if (!currentBadges.includes(data.badgeId)) {
+          if (!currentBadges.includes(badge)) {
             await prisma.user.update({
               where: { id: uid },
-              data: { badges: [...currentBadges, data.badgeId] }
+              data: { badges: [...currentBadges, badge] }
             });
           }
         }

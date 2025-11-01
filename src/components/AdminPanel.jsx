@@ -19,6 +19,7 @@ const AdminPanel = ({ onBack }) => {
   const [usersPage, setUsersPage] = useState(1);
   const [usersTotal, setUsersTotal] = useState(0);
   const [usersSearch, setUsersSearch] = useState("");
+  const [usersSearchInput, setUsersSearchInput] = useState(""); // For debounce
   const [usersRoleFilter, setUsersRoleFilter] = useState("all");
   const [selectedUsers, setSelectedUsers] = useState([]);
   const [showModal, setShowModal] = useState(null); // "role", "rating", "profile", "badges", "notification", "delete", "bulkNotification", "bulkBadge"
@@ -26,6 +27,16 @@ const AdminPanel = ({ onBack }) => {
   const [actionLoading, setActionLoading] = useState(false);
   
   const currentUser = authApi.getCurrentUser();
+
+  // Debounce search input
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setUsersSearch(usersSearchInput);
+      setUsersPage(1);
+    }, 500); // 500ms delay
+
+    return () => clearTimeout(timer);
+  }, [usersSearchInput]);
 
   useEffect(() => {
     if (currentUser?.role !== "ADMIN") {
@@ -541,12 +552,9 @@ const AdminPanel = ({ onBack }) => {
                 <input
                   type="text"
                   className="search-input"
-                  placeholder="🔍 Kullanıcı ara..."
-                  value={usersSearch}
-                  onChange={(e) => {
-                    setUsersSearch(e.target.value);
-                    setUsersPage(1);
-                  }}
+                  placeholder="🔍 Kullanıcı ara... (Yazmayı bitirince arar)"
+                  value={usersSearchInput}
+                  onChange={(e) => setUsersSearchInput(e.target.value)}
                 />
                 <select
                   className="role-filter"
