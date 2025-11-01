@@ -36,6 +36,7 @@ const HomePage = ({ user = "Admin" }) => {
   const [selectedBattleId, setSelectedBattleId] = React.useState(null);
   const [selectedWorkshopId, setSelectedWorkshopId] = React.useState(null);
   const [selectedCompetitionId, setSelectedCompetitionId] = React.useState(null);
+  const [viewingUser, setViewingUser] = React.useState(null); // AdminPanel'den profil görüntüleme için
   const [stats, setStats] = React.useState({
     battles: 0,
     users: 0,
@@ -99,6 +100,12 @@ const HomePage = ({ user = "Admin" }) => {
     setActiveSection(null);
     setSelectedBattleId(null);
     setSelectedCompetitionId(null);
+    setViewingUser(null);
+  };
+
+  const handleViewUserProfile = (user) => {
+    setViewingUser(user);
+    setActiveSection('profile');
   };
 
   const handleCompetitionClick = (competitionId) => {
@@ -173,7 +180,7 @@ const HomePage = ({ user = "Admin" }) => {
     return <WorkshopCreate onBack={handleBack} onSuccess={handleWorkshopSuccess} />;
   }
   if (activeSection === 'profile') {
-    return <ProfilePage currentUser={currentUser} onBackClick={handleBack} />;
+    return <ProfilePage currentUser={currentUser} onBackClick={handleBack} viewingUser={viewingUser} />;
   }
   if (activeSection === 'active-battles') {
     return <ActiveBattlesView onBackClick={handleBack} />;
@@ -215,7 +222,7 @@ const HomePage = ({ user = "Admin" }) => {
     return <DancerInvitations onBackClick={handleBack} />;
   }
   if (activeSection === 'admin-panel') {
-    return <AdminPanel onBack={handleBack} />;
+    return <AdminPanel onBack={handleBack} onViewUserProfile={handleViewUserProfile} />;
   }
   if (activeSection === 'referee-panel') {
     return <RefereePanel onBack={handleBack} />;

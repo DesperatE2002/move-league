@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { authApi } from '@/lib/api-client';
 
-const ProfilePage = ({ currentUser, onBackClick }) => {
-  const [user, setUser] = useState(currentUser);
+const ProfilePage = ({ currentUser, onBackClick, viewingUser = null }) => {
+  const [user, setUser] = useState(viewingUser || currentUser);
   const [enrolledWorkshops, setEnrolledWorkshops] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showPasswordChange, setShowPasswordChange] = useState(false);
@@ -13,30 +13,40 @@ const ProfilePage = ({ currentUser, onBackClick }) => {
   });
   const [passwordError, setPasswordError] = useState('');
   const [passwordSuccess, setPasswordSuccess] = useState('');
+  
+  // Başka kullanıcının profilini mi görüntülüyoruz?
+  const isViewingOther = viewingUser && viewingUser.id !== currentUser?.id;
 
   useEffect(() => {
     loadProfileData();
-  }, []);
+  }, [viewingUser?.id]);
 
   const loadProfileData = async () => {
     try {
       setLoading(true);
       
-      // Get fresh user data from API to get updated rating
-      console.log('🔄 ProfilePage: Fetching fresh user data...');
-      const userData = await authApi.getCurrentUserFromAPI();
-      console.log('✅ ProfilePage: Fresh user data:', userData);
-      
-      if (userData && userData.data && userData.data.user) {
-        console.log('📊 ProfilePage: Updated rating:', userData.data.user.rating);
-        setUser(userData.data.user);
-        // Also update localStorage
-        localStorage.setItem('user', JSON.stringify(userData.data.user));
+      if (isViewingOther) {
+        // Başka kullanıcının profilini görüntülüyoruz
+        console.log('🔄 ProfilePage: Viewing another user profile:', viewingUser);
+        setUser(viewingUser);
+        // Admin ise kullanıcının workshop bilgilerini de çekebiliriz (opsiyonel)
+      } else {
+        // Kendi profilimizi görüntülüyoruz
+        console.log('🔄 ProfilePage: Fetching fresh user data...');
+        const userData = await authApi.getCurrentUserFromAPI();
+        console.log('✅ ProfilePage: Fresh user data:', userData);
+        
+        if (userData && userData.data && userData.data.user) {
+          console.log('📊 ProfilePage: Updated rating:', userData.data.user.rating);
+          setUser(userData.data.user);
+          // Also update localStorage
+          localStorage.setItem('user', JSON.stringify(userData.data.user));
+        }
+        
+        // Get user's enrolled workshops
+        const workshopsData = await authApi.getEnrolledWorkshops();
+        setEnrolledWorkshops(workshopsData.workshops || workshopsData.data?.workshops || []);
       }
-      
-      // Get user's enrolled workshops
-      const workshopsData = await authApi.getEnrolledWorkshops();
-      setEnrolledWorkshops(workshopsData.workshops || workshopsData.data?.workshops || []);
       
     } catch (error) {
       console.error('❌ ProfilePage: Error loading profile data:', error);
@@ -192,10 +202,12 @@ const ProfilePage = ({ currentUser, onBackClick }) => {
           WebkitTextFillColor: 'transparent',
           backgroundClip: 'text'
         }}>
-          Profilim
+          {isViewingOther ? `${user.name} - Profil` : 'Profilim'}
         </h1>
         <p style={{ color: 'rgba(255,255,255,0.6)' }}>
-          Hesap bilgilerinizi ve istatistiklerinizi görüntüleyin
+          {isViewingOther 
+            ? `${user.name} kullanıcısının profil bilgilerini görüntülüyorsunuz` 
+            : 'Hesap bilgilerinizi ve istatistiklerinizi görüntüleyin'}
         </p>
       </div>
 
@@ -292,33 +304,35 @@ const ProfilePage = ({ currentUser, onBackClick }) => {
             )}
           </div>
 
-          <button
-            onClick={() => setShowPasswordChange(!showPasswordChange)}
-            style={{
-              width: '100%',
-              background: 'rgba(220,38,38,0.2)',
-              border: '1px solid rgba(220,38,38,0.4)',
-              borderRadius: '8px',
-              padding: '12px',
-              color: 'white',
-              cursor: 'pointer',
-              fontSize: '14px',
-              fontWeight: '500',
-              transition: 'all 0.3s'
-            }}
-            onMouseEnter={(e) => {
-              e.target.style.background = 'rgba(220,38,38,0.3)';
-              e.target.style.transform = 'scale(1.02)';
-            }}
-            onMouseLeave={(e) => {
-              e.target.style.background = 'rgba(220,38,38,0.2)';
-              e.target.style.transform = 'scale(1)';
-            }}
-          >
-            {showPasswordChange ? 'Şifre Değiştirmeyi İptal Et' : '🔒 Şifre Değiştir'}
-          </button>
+          {!isViewingOther && (
+            <>
+              <button
+                onClick={() => setShowPasswordChange(!showPasswordChange)}
+                style={{
+                  width: '100%',
+                  background: 'rgba(220,38,38,0.2)',
+                  border: '1px solid rgba(220,38,38,0.4)',
+                  borderRadius: '8px',
+                  padding: '12px',
+                  color: 'white',
+                  cursor: 'pointer',
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  transition: 'all 0.3s'
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.background = 'rgba(220,38,38,0.3)';
+                  e.target.style.transform = 'scale(1.02)';
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.background = 'rgba(220,38,38,0.2)';
+                  e.target.style.transform = 'scale(1)';
+                }}
+              >
+                {showPasswordChange ? 'Şifre Değiştirmeyi İptal Et' : '🔒 Şifre Değiştir'}
+              </button>
 
-          {showPasswordChange && (
+              {showPasswordChange && (
             <form onSubmit={handlePasswordChange} style={{ marginTop: '20px' }}>
               <input
                 type="password"
@@ -414,6 +428,8 @@ const ProfilePage = ({ currentUser, onBackClick }) => {
                 Şifreyi Güncelle
               </button>
             </form>
+              )}
+            </>
           )}
         </div>
 

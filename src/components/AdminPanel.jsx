@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import { battlesApi, authApi } from "@/lib/api-client";
 import "./AdminPanel.css";
 
-const AdminPanel = ({ onBack }) => {
+const AdminPanel = ({ onBack, onViewUserProfile }) => {
   const [activeTab, setActiveTab] = useState("stats");
   const [battles, setBattles] = useState([]);
   const [referees, setReferees] = useState([]);
@@ -808,7 +808,10 @@ const AdminPanel = ({ onBack }) => {
                             onChange={() => toggleUserSelection(user.id)}
                           />
                         </td>
-                        <td onClick={() => openModal("viewUser", user)} style={{ cursor: "pointer" }}>
+                        <td 
+                          onClick={() => onViewUserProfile ? onViewUserProfile(user) : openModal("viewUser", user)} 
+                          style={{ cursor: "pointer" }}
+                        >
                           <div className="user-cell">
                             <div className="user-avatar">{user.name?.charAt(0) || "?"}</div>
                             <div className="user-info">
