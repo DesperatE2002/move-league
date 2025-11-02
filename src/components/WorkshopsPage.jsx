@@ -8,6 +8,7 @@ const WorkshopsPage = ({ onBack, onWorkshopClick, onCreateClick }) => {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all'); // all, beginner, intermediate, advanced
   const [categoryFilter, setCategoryFilter] = useState('all');
+  const [viewMode, setViewMode] = useState('all'); // 'all' veya 'my' (eğitmen için)
   const currentUser = authApi.getCurrentUser();
   const isInstructor = currentUser?.role === 'INSTRUCTOR';
 
@@ -40,6 +41,11 @@ const WorkshopsPage = ({ onBack, onWorkshopClick, onCreateClick }) => {
   };
 
   const filteredWorkshops = workshops.filter(workshop => {
+    // Eğitmen için "Workshoplarım" filtresi
+    if (isInstructor && viewMode === 'my') {
+      if (workshop.instructorId !== currentUser.userId) return false;
+    }
+    
     if (filter !== 'all' && workshop.level !== filter) return false;
     if (categoryFilter !== 'all' && workshop.category !== categoryFilter) return false;
     return true;
@@ -92,6 +98,24 @@ const WorkshopsPage = ({ onBack, onWorkshopClick, onCreateClick }) => {
           </button>
         )}
       </div>
+
+      {/* View Mode Tabs (Eğitmen için) */}
+      {isInstructor && (
+        <div className="view-mode-tabs">
+          <button
+            className={viewMode === 'all' ? 'active' : ''}
+            onClick={() => setViewMode('all')}
+          >
+            📚 Tüm Workshoplar
+          </button>
+          <button
+            className={viewMode === 'my' ? 'active' : ''}
+            onClick={() => setViewMode('my')}
+          >
+            🎯 Workshoplarım
+          </button>
+        </div>
+      )}
 
       {/* Filters */}
       <div className="filters">
@@ -226,6 +250,29 @@ const WorkshopsPage = ({ onBack, onWorkshopClick, onCreateClick }) => {
                   <span className="price-label">Fiyat:</span>
                   <span className="price-amount">₺{workshop.price}</span>
                 </div>
+
+                {/* Eğitmen için kendi workshop'larında istatistik göster */}
+                {isInstructor && workshop.instructorId === currentUser.userId && (
+                  <div className="instructor-stats-mini">
+                    <div className="stat-mini">
+                      <span className="stat-icon">💰</span>
+                      <span className="stat-value">₺{(workshop.currentParticipants * workshop.price).toLocaleString('tr-TR')}</span>
+                    </div>
+                    <div className="stat-mini">
+                      <span className="stat-icon">👥</span>
+                      <span className="stat-value">{workshop.currentParticipants} Kayıt</span>
+                    </div>
+                    <button 
+                      className="btn-view-stats"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onWorkshopClick(workshop.id);
+                      }}
+                    >
+                      📊 Detayları Gör
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           ))}
@@ -255,6 +302,41 @@ const WorkshopsPage = ({ onBack, onWorkshopClick, onCreateClick }) => {
         .page-header p {
           margin: 0.5rem 0 0 0;
           color: rgba(255, 255, 255, 0.7);
+        }
+
+        .view-mode-tabs {
+          display: flex;
+          gap: 1rem;
+          margin-bottom: 2rem;
+          padding: 0.5rem;
+          background: rgba(255, 255, 255, 0.05);
+          border-radius: 12px;
+          border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .view-mode-tabs button {
+          flex: 1;
+          padding: 1rem 2rem;
+          background: transparent;
+          border: 1px solid transparent;
+          border-radius: 8px;
+          color: rgba(255, 255, 255, 0.6);
+          font-size: 1.1rem;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.3s;
+        }
+
+        .view-mode-tabs button:hover {
+          background: rgba(255, 255, 255, 0.05);
+          color: rgba(255, 255, 255, 0.9);
+        }
+
+        .view-mode-tabs button.active {
+          background: linear-gradient(135deg, #5856D6, #7C3AED);
+          border-color: #5856D6;
+          color: white;
+          box-shadow: 0 5px 20px rgba(88, 86, 214, 0.3);
         }
 
         .btn-create {
@@ -445,6 +527,54 @@ const WorkshopsPage = ({ onBack, onWorkshopClick, onCreateClick }) => {
           font-size: 1.5rem;
           font-weight: 700;
           color: #34C759;
+        }
+
+        .instructor-stats-mini {
+          margin-top: 1rem;
+          padding-top: 1rem;
+          border-top: 1px solid rgba(255, 255, 255, 0.1);
+          display: flex;
+          gap: 1rem;
+          align-items: center;
+        }
+
+        .stat-mini {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          padding: 0.5rem 1rem;
+          background: rgba(88, 86, 214, 0.15);
+          border: 1px solid rgba(88, 86, 214, 0.3);
+          border-radius: 8px;
+        }
+
+        .stat-mini .stat-icon {
+          font-size: 1.2rem;
+        }
+
+        .stat-mini .stat-value {
+          font-weight: 600;
+          color: white;
+          font-size: 0.95rem;
+        }
+
+        .btn-view-stats {
+          margin-left: auto;
+          padding: 0.5rem 1rem;
+          background: linear-gradient(135deg, #5856D6, #7C3AED);
+          border: none;
+          border-radius: 6px;
+          color: white;
+          font-size: 0.85rem;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.3s;
+          white-space: nowrap;
+        }
+
+        .btn-view-stats:hover {
+          transform: scale(1.05);
+          box-shadow: 0 5px 15px rgba(88, 86, 214, 0.4);
         }
 
         @media (max-width: 768px) {
