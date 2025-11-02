@@ -40,8 +40,13 @@ export async function GET(
                 id: true,
                 name: true,
                 avatar: true,
+                gender: true,
+                email: true,
               },
             },
+          },
+          orderBy: {
+            enrolledAt: 'asc',
           },
         },
       },

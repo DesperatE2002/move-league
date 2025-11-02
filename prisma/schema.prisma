@@ -20,6 +20,13 @@ enum UserRole {
   REFEREE
 }
 
+// Cinsiyet
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+}
+
 // Battle Durumları
 enum BattleStatus {
   PENDING          // Battle talebi gönderildi, karşı taraf bekliyor
@@ -73,6 +80,7 @@ model User {
   avatar        String?
   phone         String?
   bio           String?
+  gender        Gender?  // Cinsiyet
   
   // Dansçı özel alanları
   danceStyles   String[] // ["hiphop", "breaking", etc.]

@@ -83,6 +83,16 @@ const WorkshopDetail = ({ workshopId, onBack }) => {
   const isInstructor = workshop.instructorId === currentUser?.userId;
   const isFull = workshop.currentParticipants >= workshop.capacity;
 
+  // İstatistikleri hesapla (eğitmen için)
+  const stats = {
+    totalParticipants: workshop.enrollments.length,
+    maleCount: workshop.enrollments.filter(e => e.user.gender === 'MALE').length,
+    femaleCount: workshop.enrollments.filter(e => e.user.gender === 'FEMALE').length,
+    totalRevenue: workshop.enrollments.reduce((sum, e) => sum + (e.paidAmount || 0), 0),
+    paidCount: workshop.enrollments.filter(e => e.isPaid).length,
+    unpaidCount: workshop.enrollments.filter(e => !e.isPaid).length,
+  };
+
   return (
     <div style={{ 
       minHeight: '100vh',
@@ -205,8 +215,100 @@ const WorkshopDetail = ({ workshopId, onBack }) => {
         </div>
       )}
 
-      {/* Participants */}
-      {workshop.enrollments.length > 0 && (
+      {/* Instructor Statistics Panel */}
+      {isInstructor && workshop.enrollments.length > 0 && (
+        <div className="instructor-stats-panel">
+          <h2>📊 Workshop İstatistikleri</h2>
+          
+          <div className="stats-grid">
+            <div className="stat-card stat-total">
+              <div className="stat-icon">👥</div>
+              <div className="stat-value">{stats.totalParticipants}</div>
+              <div className="stat-label">Toplam Katılımcı</div>
+            </div>
+
+            <div className="stat-card stat-male">
+              <div className="stat-icon">👨</div>
+              <div className="stat-value">{stats.maleCount}</div>
+              <div className="stat-label">Erkek</div>
+            </div>
+
+            <div className="stat-card stat-female">
+              <div className="stat-icon">👩</div>
+              <div className="stat-value">{stats.femaleCount}</div>
+              <div className="stat-label">Kadın</div>
+            </div>
+
+            <div className="stat-card stat-revenue">
+              <div className="stat-icon">💰</div>
+              <div className="stat-value">₺{stats.totalRevenue.toLocaleString('tr-TR')}</div>
+              <div className="stat-label">Toplam Gelir</div>
+            </div>
+          </div>
+
+          <div className="participants-table">
+            <h3>Kayıtlı Katılımcılar Listesi</h3>
+            <div className="table-container">
+              <table>
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>İsim Soyisim</th>
+                    <th>Cinsiyet</th>
+                    <th>E-posta</th>
+                    <th>Ödeme</th>
+                    <th>Tutar</th>
+                    <th>Kayıt Tarihi</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {workshop.enrollments.map((enrollment, index) => (
+                    <tr key={enrollment.id}>
+                      <td>{index + 1}</td>
+                      <td>
+                        <div className="user-cell">
+                          {enrollment.user.avatar ? (
+                            <img src={enrollment.user.avatar} alt={enrollment.user.name} className="user-avatar" />
+                          ) : (
+                            <div className="user-avatar-placeholder">
+                              {enrollment.user.name.charAt(0)}
+                            </div>
+                          )}
+                          <span>{enrollment.user.name}</span>
+                        </div>
+                      </td>
+                      <td>
+                        <span className={`gender-badge ${enrollment.user.gender?.toLowerCase()}`}>
+                          {enrollment.user.gender === 'MALE' ? '👨 Erkek' : enrollment.user.gender === 'FEMALE' ? '👩 Kadın' : 'N/A'}
+                        </span>
+                      </td>
+                      <td>{enrollment.user.email}</td>
+                      <td>
+                        <span className={`payment-badge ${enrollment.isPaid ? 'paid' : 'unpaid'}`}>
+                          {enrollment.isPaid ? '✅ Ödendi' : '⏳ Beklemede'}
+                        </span>
+                      </td>
+                      <td className="amount">₺{enrollment.paidAmount?.toLocaleString('tr-TR') || 0}</td>
+                      <td>
+                        {new Date(enrollment.enrolledAt).toLocaleDateString('tr-TR', {
+                          day: '2-digit',
+                          month: '2-digit',
+                          year: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Participants - For non-instructors */}
+      {!isInstructor && workshop.enrollments.length > 0 && (
         <div className="participants-section">
           <h3>Katılımcılar ({workshop.enrollments.length})</h3>
           <div className="participants-list">
@@ -576,6 +678,198 @@ const WorkshopDetail = ({ workshopId, onBack }) => {
           color: rgba(255, 255, 255, 0.7);
         }
 
+        .instructor-stats-panel {
+          padding: 2rem;
+          background: rgba(255, 255, 255, 0.03);
+          border: 2px solid rgba(88, 86, 214, 0.3);
+          border-radius: 16px;
+          margin-bottom: 2rem;
+        }
+
+        .instructor-stats-panel h2 {
+          margin: 0 0 2rem 0;
+          color: white;
+          font-size: 1.8rem;
+          text-align: center;
+        }
+
+        .stats-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+          gap: 1.5rem;
+          margin-bottom: 2rem;
+        }
+
+        .stat-card {
+          padding: 2rem;
+          border-radius: 12px;
+          text-align: center;
+          border: 2px solid;
+          transition: transform 0.3s;
+        }
+
+        .stat-card:hover {
+          transform: translateY(-5px);
+        }
+
+        .stat-total {
+          background: rgba(88, 86, 214, 0.15);
+          border-color: #5856D6;
+        }
+
+        .stat-male {
+          background: rgba(0, 122, 255, 0.15);
+          border-color: #007AFF;
+        }
+
+        .stat-female {
+          background: rgba(255, 45, 85, 0.15);
+          border-color: #FF2D55;
+        }
+
+        .stat-revenue {
+          background: rgba(52, 199, 89, 0.15);
+          border-color: #34C759;
+        }
+
+        .stat-icon {
+          font-size: 2.5rem;
+          margin-bottom: 1rem;
+        }
+
+        .stat-value {
+          font-size: 2.5rem;
+          font-weight: 700;
+          color: white;
+          margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+          font-size: 1rem;
+          color: rgba(255, 255, 255, 0.7);
+        }
+
+        .participants-table {
+          margin-top: 2rem;
+        }
+
+        .participants-table h3 {
+          margin: 0 0 1.5rem 0;
+          color: white;
+          font-size: 1.4rem;
+        }
+
+        .table-container {
+          overflow-x: auto;
+          border-radius: 12px;
+          border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        table {
+          width: 100%;
+          border-collapse: collapse;
+          background: rgba(255, 255, 255, 0.03);
+        }
+
+        thead {
+          background: rgba(255, 255, 255, 0.05);
+        }
+
+        th {
+          padding: 1rem;
+          text-align: left;
+          font-weight: 600;
+          color: rgba(255, 255, 255, 0.9);
+          border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+          font-size: 0.9rem;
+        }
+
+        td {
+          padding: 1rem;
+          color: rgba(255, 255, 255, 0.8);
+          border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        tbody tr:hover {
+          background: rgba(255, 255, 255, 0.05);
+        }
+
+        tbody tr:last-child td {
+          border-bottom: none;
+        }
+
+        .user-cell {
+          display: flex;
+          align-items: center;
+          gap: 0.75rem;
+        }
+
+        .user-avatar {
+          width: 40px;
+          height: 40px;
+          border-radius: 50%;
+          object-fit: cover;
+        }
+
+        .user-avatar-placeholder {
+          width: 40px;
+          height: 40px;
+          border-radius: 50%;
+          background: linear-gradient(135deg, #5856D6, #7C3AED);
+          color: white;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-weight: 700;
+          font-size: 1.2rem;
+        }
+
+        .gender-badge {
+          padding: 0.4rem 0.8rem;
+          border-radius: 20px;
+          font-size: 0.85rem;
+          font-weight: 600;
+          display: inline-block;
+        }
+
+        .gender-badge.male {
+          background: rgba(0, 122, 255, 0.2);
+          border: 1px solid #007AFF;
+          color: #64B5F6;
+        }
+
+        .gender-badge.female {
+          background: rgba(255, 45, 85, 0.2);
+          border: 1px solid #FF2D55;
+          color: #F48FB1;
+        }
+
+        .payment-badge {
+          padding: 0.4rem 0.8rem;
+          border-radius: 20px;
+          font-size: 0.85rem;
+          font-weight: 600;
+          display: inline-block;
+        }
+
+        .payment-badge.paid {
+          background: rgba(52, 199, 89, 0.2);
+          border: 1px solid #34C759;
+          color: #69f0ae;
+        }
+
+        .payment-badge.unpaid {
+          background: rgba(255, 149, 0, 0.2);
+          border: 1px solid #FF9500;
+          color: #ffb74d;
+        }
+
+        .amount {
+          font-weight: 600;
+          color: #34C759;
+          font-size: 1rem;
+        }
+
         .loading, .error {
           text-align: center;
           padding: 4rem 2rem;
@@ -593,6 +887,22 @@ const WorkshopDetail = ({ workshopId, onBack }) => {
 
           .info-card.full-width {
             grid-column: 1;
+          }
+
+          .stats-grid {
+            grid-template-columns: 1fr 1fr;
+          }
+
+          .table-container {
+            font-size: 0.85rem;
+          }
+
+          th, td {
+            padding: 0.75rem 0.5rem;
+          }
+
+          .stat-value {
+            font-size: 2rem;
           }
         }
       `}</style>
