@@ -28,17 +28,35 @@ const WorkshopCreate = ({ onBack, onSuccess }) => {
     }));
   };
 
-  const handleVideoUpload = (e) => {
+  const handleVideoUpload = async (e) => {
     const file = e.target.files[0];
     if (file) {
-      // Şu anda gerçek upload yok, mock URL kullanıyoruz
-      const mockVideoUrl = `https://www.youtube.com/shorts/LlXkjjINyiU?feature=share`;
-      setFormData(prev => ({
-        ...prev,
-        videoUrl: mockVideoUrl,
-        thumbnailUrl: 'https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?w=400'
-      }));
-      alert(`Video seçildi: ${file.name}\n(Geçici olarak mock URL kullanılıyor)`);
+      // Video boyutu kontrolü (max 50MB)
+      const maxSize = 50 * 1024 * 1024; // 50MB
+      if (file.size > maxSize) {
+        alert('Video dosyası çok büyük! Maksimum 50MB olmalıdır.');
+        return;
+      }
+
+      // Video önizlemesi için geçici URL oluştur
+      const videoPreviewUrl = URL.createObjectURL(file);
+      
+      // Base64'e çevir
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64Video = reader.result;
+        setFormData(prev => ({
+          ...prev,
+          videoUrl: base64Video,
+          videoPreview: videoPreviewUrl,
+          videoFileName: file.name,
+        }));
+        alert(`✅ Video yüklendi: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)`);
+      };
+      reader.onerror = () => {
+        alert('❌ Video yüklenirken hata oluştu');
+      };
+      reader.readAsDataURL(file);
     }
   };
 
@@ -155,8 +173,25 @@ const WorkshopCreate = ({ onBack, onSuccess }) => {
               }}
             />
             <small style={{ color: 'rgba(255,255,255,0.6)', marginTop: '0.5rem', display: 'block' }}>
-              Şu anda video dosyası yüklenemez. Geçici olarak Unsplash'tan örnek video kullanılıyor.
+              Workshop tanıtım videosu yükleyin (Maksimum 50MB)
             </small>
+            {formData.videoPreview && (
+              <div style={{ marginTop: '1rem' }}>
+                <p style={{ color: '#34C759', marginBottom: '0.5rem' }}>✅ Video yüklendi: {formData.videoFileName}</p>
+                <video 
+                  controls 
+                  style={{ 
+                    width: '100%', 
+                    maxHeight: '300px', 
+                    borderRadius: '8px',
+                    background: '#000'
+                  }}
+                  src={formData.videoPreview}
+                >
+                  Tarayıcınız video oynatmayı desteklemiyor.
+                </video>
+              </div>
+            )}
           </div>
 
           <div className="form-group">

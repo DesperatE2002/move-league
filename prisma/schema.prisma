@@ -271,11 +271,11 @@ model Workshop {
   // Workshop Detayları
   category        String   // "hiphop", "breaking", "contemporary", etc.
   level           String   // "beginner", "intermediate", "advanced"
-  description     String
-  requirements    String?  // Ön gereksinimler
+  description     String   @db.Text
+  requirements    String?  @db.Text // Ön gereksinimler
   
   // Video
-  videoUrl        String?  // Workshop tanıtım/örnek video URL'i
+  videoUrl        String?  @db.Text // Workshop tanıtım/örnek video URL'i (Base64 veya URL)
   thumbnailUrl    String?  // Video kapak görseli
   
   // Tarih ve Süre
