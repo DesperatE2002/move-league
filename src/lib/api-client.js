@@ -27,7 +27,27 @@ export async function apiRequest(endpoint, options = {}) {
 
   try {
     const response = await fetch(`${API_BASE}${endpoint}`, config);
-    const data = await response.json();
+    
+    // Response body'yi text olarak oku
+    const textBody = await response.text();
+    
+    // JSON parse'ı dene
+    let data;
+    try {
+      data = textBody ? JSON.parse(textBody) : {};
+    } catch (jsonError) {
+      console.error('JSON Parse Error:', {
+        endpoint,
+        status: response.status,
+        body: textBody,
+        error: jsonError.message
+      });
+      throw new ApiError(
+        `API response JSON parse hatası: ${endpoint}`,
+        response.status,
+        { rawBody: textBody }
+      );
+    }
 
     if (!response.ok || !data.success) {
       throw new ApiError(
