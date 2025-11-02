@@ -129,6 +129,10 @@ export const battlesApi = {
     return apiRequest(`/battles?${query}`);
   },
 
+  getBattle: (id) => {
+    return apiRequest(`/battles/${id}`);
+  },
+
   createBattle: (data) => {
     return apiRequest('/battles', {
       method: 'POST',
