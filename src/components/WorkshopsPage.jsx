@@ -43,7 +43,7 @@ const WorkshopsPage = ({ onBack, onWorkshopClick, onCreateClick }) => {
   const filteredWorkshops = workshops.filter(workshop => {
     // Eğitmen için "Workshoplarım" filtresi
     if (isInstructor && viewMode === 'my') {
-      if (workshop.instructorId !== currentUser.userId) return false;
+      if (workshop.instructorId !== currentUser.id) return false;
     }
     
     if (filter !== 'all' && workshop.level !== filter) return false;
@@ -252,7 +252,7 @@ const WorkshopsPage = ({ onBack, onWorkshopClick, onCreateClick }) => {
                 </div>
 
                 {/* Eğitmen için kendi workshop'larında istatistik göster */}
-                {isInstructor && workshop.instructorId === currentUser.userId && (
+                {isInstructor && workshop.instructorId === currentUser.id && (
                   <div className="instructor-stats-mini">
                     <div className="stat-mini">
                       <span className="stat-icon">💰</span>

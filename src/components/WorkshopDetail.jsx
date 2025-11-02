@@ -79,9 +79,16 @@ const WorkshopDetail = ({ workshopId, onBack }) => {
     return <div className="error">Workshop bulunamadı.</div>;
   }
 
-  const isEnrolled = workshop.enrollments.some(e => e.userId === currentUser?.userId);
-  const isInstructor = workshop.instructorId === currentUser?.userId;
+  const isEnrolled = workshop.enrollments.some(e => e.userId === currentUser?.id);
+  const isInstructor = workshop.instructorId === currentUser?.id;
   const isFull = workshop.currentParticipants >= workshop.capacity;
+
+  console.log('🔍 Workshop Detail Debug:', {
+    workshopInstructorId: workshop.instructorId,
+    currentUserId: currentUser?.id,
+    isInstructor,
+    currentUser
+  });
 
   // İstatistikleri hesapla (eğitmen için)
   const stats = {
