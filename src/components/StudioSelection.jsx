@@ -11,23 +11,42 @@ const StudioSelection = ({ battleId, onBack, onComplete }) => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
+  const [battle, setBattle] = useState(null);
+  const [alreadySelected, setAlreadySelected] = useState(false);
   const currentUser = authApi.getCurrentUser();
 
   useEffect(() => {
-    loadStudios();
+    loadBattleAndStudios();
   }, []);
 
-  const loadStudios = async () => {
+  const loadBattleAndStudios = async () => {
     try {
       setLoading(true);
-      console.log('🏢 Stüdyolar yükleniyor...');
+      console.log('🏢 Battle ve stüdyolar yükleniyor...');
+      
+      // Battle detayını yükle
+      const battleResponse = await battlesApi.getBattle(battleId);
+      console.log('✅ Battle response:', battleResponse);
+      const battleData = battleResponse.data;
+      setBattle(battleData);
+
+      // Eğer zaten stüdyo seçimi yapılmışsa, kullanıcıyı engelle
+      if (battleData.studioPreferences && battleData.studioPreferences.length > 0) {
+        console.log('⚠️ Stüdyo seçimi zaten yapılmış!');
+        setAlreadySelected(true);
+        setError('Stüdyo seçimi zaten yapıldı. Tekrar seçim yapamazsınız.');
+        setLoading(false);
+        return;
+      }
+
+      // Stüdyoları yükle
       const response = await studiosApi.getStudios();
       console.log('✅ Stüdyo response:', response);
       setStudios(response.data || []);
       console.log(`✅ ${response.data?.length || 0} stüdyo yüklendi`);
     } catch (err) {
-      console.error('❌ Stüdyo yükleme hatası:', err);
-      setError('Stüdyolar yüklenemedi: ' + (err.message || 'Bilinmeyen hata'));
+      console.error('❌ Yükleme hatası:', err);
+      setError('Veriler yüklenemedi: ' + (err.message || 'Bilinmeyen hata'));
     } finally {
       setLoading(false);
     }
@@ -122,13 +141,23 @@ const StudioSelection = ({ battleId, onBack, onComplete }) => {
         <h1 className="page-title">🏢 Stüdyo Seçimi</h1>
       </div>
 
-      <div className="info-banner">
-        <div className="info-icon">ℹ️</div>
-        <div className="info-text">
-          <strong>En az 1 stüdyo seçin ve öncelik sıralaması yapın</strong>
-          <p>Rakibinizle ortak olan ve en yüksek önceliğe sahip stüdyo battle için seçilecek.</p>
+      {alreadySelected ? (
+        <div className="already-selected-message">
+          <div className="warning-icon">⚠️</div>
+          <h2>Stüdyo Seçimi Zaten Yapıldı</h2>
+          <p>Bu battle için stüdyo seçiminiz daha önce kaydedilmiştir.</p>
+          <p>Tekrar seçim yapamazsınız. Rakibinizin de seçim yapmasını ve stüdyoların onaylamasını bekleyin.</p>
+          <button className="back-btn-large" onClick={onBack}>← Geri Dön</button>
         </div>
-      </div>
+      ) : (
+        <>
+          <div className="info-banner">
+            <div className="info-icon">ℹ️</div>
+            <div className="info-text">
+              <strong>En az 1 stüdyo seçin ve öncelik sıralaması yapın</strong>
+              <p>Rakibinizle ortak olan ve en yüksek önceliğe sahip stüdyo battle için seçilecek.</p>
+            </div>
+          </div>
 
       {error && (
         <div className="alert alert-error">
@@ -328,6 +357,54 @@ const StudioSelection = ({ battleId, onBack, onComplete }) => {
           margin: 0;
           color: rgba(255, 255, 255, 0.8);
           font-size: 0.9rem;
+        }
+
+        .already-selected-message {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          min-height: 400px;
+          padding: 3rem;
+          text-align: center;
+          background: rgba(220, 38, 38, 0.1);
+          border: 2px solid rgba(220, 38, 38, 0.4);
+          border-radius: 16px;
+        }
+
+        .already-selected-message .warning-icon {
+          font-size: 4rem;
+          margin-bottom: 1rem;
+        }
+
+        .already-selected-message h2 {
+          font-size: 2rem;
+          margin: 0 0 1rem 0;
+          color: #fca5a5;
+        }
+
+        .already-selected-message p {
+          font-size: 1.1rem;
+          color: rgba(255, 255, 255, 0.8);
+          margin: 0.5rem 0;
+          max-width: 600px;
+        }
+
+        .back-btn-large {
+          margin-top: 2rem;
+          padding: 1rem 2rem;
+          background: rgba(255, 255, 255, 0.1);
+          border: 1px solid rgba(255, 255, 255, 0.2);
+          border-radius: 12px;
+          color: white;
+          font-size: 1.1rem;
+          cursor: pointer;
+          transition: all 0.3s;
+        }
+
+        .back-btn-large:hover {
+          background: rgba(255, 255, 255, 0.2);
+          transform: scale(1.05);
         }
 
         .alert {
@@ -619,6 +696,8 @@ const StudioSelection = ({ battleId, onBack, onComplete }) => {
           }
         }
       `}</style>
+        </>
+      )}
     </div>
   );
 };
