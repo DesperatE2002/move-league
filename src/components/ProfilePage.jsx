@@ -16,6 +16,14 @@ const ProfilePage = ({ currentUser, onBackClick, viewingUser = null }) => {
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [avatarError, setAvatarError] = useState('');
   
+  // Studio/Referee specific stats
+  const [roleStats, setRoleStats] = useState({
+    totalBattles: 0,
+    completedBattles: 0,
+    pendingBattles: 0,
+    upcomingBattles: []
+  });
+  
   // Başka kullanıcının profilini mi görüntülüyoruz?
   const isViewingOther = viewingUser && viewingUser.id !== currentUser?.id;
 
@@ -31,7 +39,6 @@ const ProfilePage = ({ currentUser, onBackClick, viewingUser = null }) => {
         // Başka kullanıcının profilini görüntülüyoruz
         console.log('🔄 ProfilePage: Viewing another user profile:', viewingUser);
         setUser(viewingUser);
-        // Admin ise kullanıcının workshop bilgilerini de çekebiliriz (opsiyonel)
       } else {
         // Kendi profilimizi görüntülüyoruz
         console.log('🔄 ProfilePage: Fetching fresh user data...');
@@ -41,19 +48,59 @@ const ProfilePage = ({ currentUser, onBackClick, viewingUser = null }) => {
         if (userData && userData.data && userData.data.user) {
           console.log('📊 ProfilePage: Updated rating:', userData.data.user.rating);
           setUser(userData.data.user);
-          // Also update localStorage
           localStorage.setItem('user', JSON.stringify(userData.data.user));
         }
         
         // Get user's enrolled workshops
         const workshopsData = await authApi.getEnrolledWorkshops();
         setEnrolledWorkshops(workshopsData.workshops || workshopsData.data?.workshops || []);
+        
+        // Load role-specific stats
+        await loadRoleStats();
       }
       
     } catch (error) {
       console.error('❌ ProfilePage: Error loading profile data:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadRoleStats = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const headers = {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      };
+
+      // REFEREE veya STUDIO ise battle istatistiklerini çek
+      if (user?.role === 'REFEREE' || user?.role === 'STUDIO') {
+        const battlesRes = await fetch('/api/battles', { headers });
+        const battlesData = await battlesRes.json();
+        const battles = battlesData.data || battlesData || [];
+
+        const total = battles.length;
+        const completed = battles.filter(b => b.status === 'COMPLETED').length;
+        const pending = battles.filter(b => 
+          b.status === 'STUDIO_PENDING' || 
+          b.status === 'CONFIRMED' || 
+          b.status === 'BATTLE_SCHEDULED'
+        ).length;
+        const upcoming = battles.filter(b => 
+          b.status === 'BATTLE_SCHEDULED' && 
+          b.scheduledDate
+        ).sort((a, b) => new Date(a.scheduledDate) - new Date(b.scheduledDate));
+
+        setRoleStats({
+          totalBattles: total,
+          completedBattles: completed,
+          pendingBattles: pending,
+          upcomingBattles: upcoming
+        });
+      }
+    } catch (error) {
+      console.error('❌ Error loading role stats:', error);
     }
   };
 

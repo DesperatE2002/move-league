@@ -92,12 +92,14 @@ const BattlesPage = ({ onBack, onBattleClick }) => {
       <div className="page-header">
         <button className="back-btn" onClick={onBack}>← Geri</button>
         <h1 className="page-title">⚔️ Battle Yönetimi</h1>
-        <button 
-          className="create-btn"
-          onClick={() => setShowCreateForm(true)}
-        >
-          + Yeni Battle
-        </button>
+        {currentUser?.role === 'DANCER' && (
+          <button 
+            className="create-btn"
+            onClick={() => setShowCreateForm(true)}
+          >
+            + Yeni Battle
+          </button>
+        )}
       </div>
 
       {/* Filter Tabs */}

@@ -236,14 +236,33 @@ const HomePage = ({ user = "Admin" }) => {
   ];
 
   const menuItems = [
-    { 
+    // Battle - Sadece DANCER için "yeni oluştur" özelliği var
+    ...(currentUser?.role === 'DANCER' ? [{
       id: "battles",
       title: "Battle", 
       desc: "Battle'larını görüntüle ve yeni battle oluştur", 
       icon: "⚔️", 
       color: "#FF3B30",
       badge: "Yeni"
-    },
+    }] : []),
+    // STUDIO için Battle Yönetimi
+    ...(currentUser?.role === 'STUDIO' ? [{
+      id: "battles",
+      title: "Battle Yönetimi", 
+      desc: "Stüdyonuzdaki battle taleplerini yönetin", 
+      icon: "🏢", 
+      color: "#FF3B30",
+      badge: null
+    }] : []),
+    // REFEREE için Battle Listesi (sadece görüntüleme + puanlama)
+    ...(currentUser?.role === 'REFEREE' ? [{
+      id: "battles",
+      title: "Battle Listesi", 
+      desc: "Görevlendirildiğiniz battle'ları görüntüleyin", 
+      icon: "⚖️", 
+      color: "#FF3B30",
+      badge: null
+    }] : []),
     { 
       id: "leagues",
       title: "Mevcut Ligleri Görüntüle", 
