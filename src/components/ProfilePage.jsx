@@ -688,6 +688,235 @@ const ProfilePage = ({ currentUser, onBackClick, viewingUser = null }) => {
           </div>
         )}
 
+        {/* STUDIO Stats Card */}
+        {user.role === 'STUDIO' && !isViewingOther && (
+          <div style={{
+            background: 'rgba(255,255,255,0.05)',
+            backdropFilter: 'blur(10px)',
+            border: '1px solid rgba(255,255,255,0.1)',
+            borderRadius: '12px',
+            padding: '30px',
+            boxShadow: '0 8px 32px rgba(0,0,0,0.3)'
+          }}>
+            <h3 style={{
+              fontSize: '18px',
+              fontWeight: '600',
+              marginBottom: '20px',
+              color: 'rgba(255,255,255,0.8)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px'
+            }}>
+              🏢 Stüdyo İstatistikleri
+            </h3>
+
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(3, 1fr)',
+              gap: '15px',
+              marginBottom: '20px'
+            }}>
+              <div style={{
+                background: 'rgba(220,38,38,0.1)',
+                border: '1px solid rgba(220,38,38,0.3)',
+                borderRadius: '8px',
+                padding: '15px',
+                textAlign: 'center'
+              }}>
+                <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#dc2626' }}>
+                  {roleStats.totalBattles}
+                </div>
+                <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.6)', marginTop: '5px' }}>
+                  Toplam Battle
+                </div>
+              </div>
+
+              <div style={{
+                background: 'rgba(34,197,94,0.1)',
+                border: '1px solid rgba(34,197,94,0.3)',
+                borderRadius: '8px',
+                padding: '15px',
+                textAlign: 'center'
+              }}>
+                <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#22c55e' }}>
+                  {roleStats.completedBattles}
+                </div>
+                <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.6)', marginTop: '5px' }}>
+                  Tamamlanan
+                </div>
+              </div>
+
+              <div style={{
+                background: 'rgba(251,146,60,0.1)',
+                border: '1px solid rgba(251,146,60,0.3)',
+                borderRadius: '8px',
+                padding: '15px',
+                textAlign: 'center'
+              }}>
+                <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#fb923c' }}>
+                  {roleStats.pendingBattles}
+                </div>
+                <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.6)', marginTop: '5px' }}>
+                  Bekliyor
+                </div>
+              </div>
+            </div>
+
+            {roleStats.upcomingBattles.length > 0 && (
+              <div style={{
+                background: 'rgba(0,0,0,0.3)',
+                borderRadius: '8px',
+                padding: '15px',
+                marginTop: '15px'
+              }}>
+                <h4 style={{
+                  fontSize: '14px',
+                  fontWeight: '600',
+                  color: 'rgba(255,255,255,0.8)',
+                  marginBottom: '10px'
+                }}>
+                  📅 Yaklaşan Battle'lar
+                </h4>
+                {roleStats.upcomingBattles.slice(0, 3).map((battle, index) => (
+                  <div key={index} style={{
+                    padding: '8px 0',
+                    borderBottom: index < Math.min(2, roleStats.upcomingBattles.length - 1) ? '1px solid rgba(255,255,255,0.1)' : 'none'
+                  }}>
+                    <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.8)' }}>
+                      {battle.initiator?.name} vs {battle.challenged?.name}
+                    </div>
+                    <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.5)' }}>
+                      {new Date(battle.scheduledDate).toLocaleDateString('tr-TR')} - {battle.scheduledTime}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* REFEREE Stats Card */}
+        {user.role === 'REFEREE' && !isViewingOther && (
+          <div style={{
+            background: 'rgba(255,255,255,0.05)',
+            backdropFilter: 'blur(10px)',
+            border: '1px solid rgba(255,255,255,0.1)',
+            borderRadius: '12px',
+            padding: '30px',
+            boxShadow: '0 8px 32px rgba(0,0,0,0.3)'
+          }}>
+            <h3 style={{
+              fontSize: '18px',
+              fontWeight: '600',
+              marginBottom: '20px',
+              color: 'rgba(255,255,255,0.8)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px'
+            }}>
+              ⚖️ Hakemlik İstatistikleri
+            </h3>
+
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(3, 1fr)',
+              gap: '15px',
+              marginBottom: '20px'
+            }}>
+              <div style={{
+                background: 'rgba(139,92,246,0.1)',
+                border: '1px solid rgba(139,92,246,0.3)',
+                borderRadius: '8px',
+                padding: '15px',
+                textAlign: 'center'
+              }}>
+                <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#8b5cf6' }}>
+                  {roleStats.totalBattles}
+                </div>
+                <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.6)', marginTop: '5px' }}>
+                  Atandığınız
+                </div>
+              </div>
+
+              <div style={{
+                background: 'rgba(34,197,94,0.1)',
+                border: '1px solid rgba(34,197,94,0.3)',
+                borderRadius: '8px',
+                padding: '15px',
+                textAlign: 'center'
+              }}>
+                <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#22c55e' }}>
+                  {roleStats.completedBattles}
+                </div>
+                <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.6)', marginTop: '5px' }}>
+                  Puanladığınız
+                </div>
+              </div>
+
+              <div style={{
+                background: 'rgba(251,146,60,0.1)',
+                border: '1px solid rgba(251,146,60,0.3)',
+                borderRadius: '8px',
+                padding: '15px',
+                textAlign: 'center'
+              }}>
+                <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#fb923c' }}>
+                  {roleStats.pendingBattles}
+                </div>
+                <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.6)', marginTop: '5px' }}>
+                  Bekleyen
+                </div>
+              </div>
+            </div>
+
+            {roleStats.upcomingBattles.length > 0 && (
+              <div style={{
+                background: 'rgba(0,0,0,0.3)',
+                borderRadius: '8px',
+                padding: '15px',
+                marginTop: '15px'
+              }}>
+                <h4 style={{
+                  fontSize: '14px',
+                  fontWeight: '600',
+                  color: 'rgba(255,255,255,0.8)',
+                  marginBottom: '10px'
+                }}>
+                  📋 Görevleriniz
+                </h4>
+                {roleStats.upcomingBattles.slice(0, 3).map((battle, index) => (
+                  <div key={index} style={{
+                    padding: '8px 0',
+                    borderBottom: index < Math.min(2, roleStats.upcomingBattles.length - 1) ? '1px solid rgba(255,255,255,0.1)' : 'none'
+                  }}>
+                    <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.8)' }}>
+                      {battle.initiator?.name} vs {battle.challenged?.name}
+                    </div>
+                    <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.5)' }}>
+                      {battle.scheduledDate ? new Date(battle.scheduledDate).toLocaleDateString('tr-TR') + ' - ' + battle.scheduledTime : 'Tarih belirlenmedi'}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <div style={{
+              background: 'rgba(0,0,0,0.3)',
+              borderRadius: '8px',
+              padding: '15px',
+              marginTop: '15px',
+              textAlign: 'center'
+            }}>
+              <p style={{
+                fontSize: '12px',
+                color: 'rgba(255,255,255,0.6)'
+              }}>
+                Hakemlik görevleriniz admin tarafından atanır
+              </p>
+            </div>
+          </div>
+        )}
+
         {/* Badges Card */}
         <div style={{
           background: 'rgba(255,255,255,0.05)',
