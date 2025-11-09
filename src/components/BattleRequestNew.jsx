@@ -24,7 +24,8 @@ const BattleRequest = ({ onBack }) => {
     try {
       setLoading(true);
       const response = await usersApi.getUsers({ role: 'DANCER' });
-      setDancers(response.data || []);
+      const dancersData = response.data || response || [];
+      setDancers(dancersData);
     } catch (err) {
       setError('Dansçılar yüklenemedi: ' + err.message);
     } finally {

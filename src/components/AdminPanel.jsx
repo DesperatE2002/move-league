@@ -70,7 +70,8 @@ const AdminPanel = ({ onBack, onViewUserProfile }) => {
         }
       } else if (activeTab === "battles") {
         const battlesResponse = await battlesApi.getBattles();
-        setBattles(battlesResponse.data || []);
+        const battlesData = battlesResponse.data || battlesResponse || [];
+        setBattles(battlesData);
 
         const usersResponse = await fetch("/api/users?role=REFEREE", {
           headers: {
@@ -81,7 +82,8 @@ const AdminPanel = ({ onBack, onViewUserProfile }) => {
         
         if (usersResponse.ok) {
           const data = await usersResponse.json();
-          setReferees(data.data || []);
+          const refereesData = data.data || data || [];
+          setReferees(refereesData);
         }
       } else if (activeTab === "users") {
         const params = new URLSearchParams({

@@ -24,8 +24,9 @@ const NotificationDropdown = ({ onBattleClick, onStudioApprovalClick }) => {
     try {
       setLoading(true);
       const response = await notificationsApi.getNotifications();
-      setNotifications(response.data.notifications || []);
-      setUnreadCount(response.data.unreadCount || 0);
+      const responseData = response.data || response || {};
+      setNotifications(responseData.notifications || []);
+      setUnreadCount(responseData.unreadCount || 0);
     } catch (err) {
       console.error('Bildirimler yüklenemedi:', err);
     } finally {

@@ -25,8 +25,9 @@ const StudioBattleApproval = ({ battleId, onBack }) => {
       setLoading(true);
       console.log('🏢 Loading battle:', battleId);
       const response = await battlesApi.getBattles(); // Tüm battle'ları çek
-      console.log('📊 All battles:', response.data);
-      const foundBattle = response.data.find(b => b.id === battleId);
+      const battlesData = response.data || response || [];
+      console.log('📊 All battles:', battlesData);
+      const foundBattle = battlesData.find(b => b.id === battleId);
       console.log('✅ Found battle:', foundBattle);
       setBattle(foundBattle);
       

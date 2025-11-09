@@ -79,10 +79,11 @@ const RefereePanel = ({ onBack }) => {
       console.log('🔍 User ID:', currentUser?.id);
       
       const response = await battlesApi.getBattles();
-      console.log('📦 All battles:', response.data);
+      const battlesData = response.data || response || [];
+      console.log('📦 All battles:', battlesData);
       
       // Sadece hakeme atanan battle'ları filtrele
-      const myBattles = (response.data || []).filter(b => {
+      const myBattles = battlesData.filter(b => {
         console.log(`🔍 Battle ${b.id}: refereeId=${b.refereeId}, currentUserId=${currentUser?.id}, status=${b.status}, match=${b.refereeId === currentUser?.id}`);
         return b.refereeId === currentUser?.id && 
                ['CONFIRMED', 'BATTLE_SCHEDULED', 'STUDIO_PENDING'].includes(b.status);

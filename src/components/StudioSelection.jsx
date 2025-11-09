@@ -42,8 +42,11 @@ const StudioSelection = ({ battleId, onBack, onComplete }) => {
       // Stüdyoları yükle
       const response = await studiosApi.getStudios();
       console.log('✅ Stüdyo response:', response);
-      setStudios(response.data || []);
-      console.log(`✅ ${response.data?.length || 0} stüdyo yüklendi`);
+      
+      // API response format: { success: true, data: [...] }
+      const studiosData = response.data || response || [];
+      setStudios(studiosData);
+      console.log(`✅ ${studiosData.length} stüdyo yüklendi`);
     } catch (err) {
       console.error('❌ Yükleme hatası:', err);
       setError('Veriler yüklenemedi: ' + (err.message || 'Bilinmeyen hata'));
