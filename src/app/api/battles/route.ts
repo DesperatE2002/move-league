@@ -164,6 +164,10 @@ export async function POST(request: NextRequest) {
         category: danceStyle || 'Hip-Hop',
         description: description || '',
         status: 'PENDING',
+        initiatorNoShow: false,
+        challengedNoShow: false,
+        reminder24hSent: false,
+        reminder1hSent: false,
       },
       include: {
         initiator: {
