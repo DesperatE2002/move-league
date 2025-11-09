@@ -1,10 +1,94 @@
-// PATCH /api/battles/[id]
-// Battle güncelleme (onaylama, reddetme, stüdyo seçimi)
+// GET /api/battles/[id]
+// Belirli bir battle'ın detaylarını getir
 
 import { NextRequest } from 'next/server';
 import prisma from '@/lib/prisma';
 import { successResponse, errorResponse, unauthorizedResponse, notFoundResponse } from '@/lib/api-response';
 import { getUserFromRequest } from '@/lib/auth';
+
+export async function GET(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const currentUser = getUserFromRequest(request);
+    if (!currentUser) {
+      return unauthorizedResponse('Giriş yapmanız gerekiyor');
+    }
+
+    const battleId = params.id;
+
+    // Battle'ı bul
+    const battle = await prisma.battleRequest.findUnique({
+      where: { id: battleId },
+      include: {
+        initiator: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            avatar: true,
+            rating: true,
+            danceStyles: true,
+          },
+        },
+        challenged: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            avatar: true,
+            rating: true,
+            danceStyles: true,
+          },
+        },
+        referee: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
+        winner: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
+        studioPreferences: {
+          include: {
+            studio: {
+              select: {
+                id: true,
+                name: true,
+                address: true,
+                city: true,
+                capacity: true,
+                pricePerHour: true,
+              },
+            },
+          },
+          orderBy: {
+            priority: 'asc',
+          },
+        },
+      },
+    });
+
+    if (!battle) {
+      return notFoundResponse('Battle bulunamadı');
+    }
+
+    return successResponse(battle, 'Battle detayları getirildi');
+  } catch (error) {
+    console.error('Get battle error:', error);
+    return errorResponse('Battle detayları alınamadı', 500, error);
+  }
+}
+
+// PATCH /api/battles/[id]
+// Battle güncelleme (onaylama, reddetme, stüdyo seçimi)
 
 export async function PATCH(
   request: NextRequest,

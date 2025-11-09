@@ -27,7 +27,7 @@ const StudioSelection = ({ battleId, onBack, onComplete }) => {
       // Battle detayını yükle
       const battleResponse = await battlesApi.getBattle(battleId);
       console.log('✅ Battle response:', battleResponse);
-      const battleData = battleResponse.data;
+      const battleData = battleResponse.data || battleResponse;
       setBattle(battleData);
 
       // Eğer zaten stüdyo seçimi yapılmışsa, kullanıcıyı engelle
