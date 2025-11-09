@@ -49,7 +49,7 @@ export async function apiRequest(endpoint, options = {}) {
       );
     }
 
-    if (!response.ok || !data.success) {
+    if (!response.ok) {
       throw new ApiError(
         data.message || 'API request failed',
         response.status,
@@ -57,6 +57,7 @@ export async function apiRequest(endpoint, options = {}) {
       );
     }
 
+    // Return the whole response object so components can access both data and success
     return data;
   } catch (error) {
     if (error instanceof ApiError) {
