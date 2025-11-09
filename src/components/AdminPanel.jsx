@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { battlesApi, authApi } from "@/lib/api-client";
 import "./AdminPanel.css";
+import "./SeasonReset.css";
 
 const AdminPanel = ({ onBack, onViewUserProfile }) => {
   const [activeTab, setActiveTab] = useState("stats");
@@ -231,6 +232,70 @@ const AdminPanel = ({ onBack, onViewUserProfile }) => {
     }
   };
 
+  const handleSeasonReset = async () => {
+    const confirmText = prompt(
+      "⚠️ DİKKAT! Bu işlem GERİ ALINAMAZ!\n\n" +
+      "Lig sıfırlama işlemi:\n" +
+      "• Tüm kullanıcıların rating'i 1000'e sıfırlanacak\n" +
+      "• Tüm galibiyet/mağlubiyet kayıtları silinecek\n" +
+      "• Tüm battle kayıtları silinecek\n" +
+      "• Tüm bildirimler silinecek\n\n" +
+      "Devam etmek için 'RESET' yazın:"
+    );
+
+    if (confirmText !== "RESET") {
+      if (confirmText !== null) {
+        alert("İşlem iptal edildi.");
+      }
+      return;
+    }
+
+    const doubleConfirm = confirm(
+      "Son kez soruyorum: Tüm lig verilerini sıfırlamak istediğinize EMİN misiniz?"
+    );
+
+    if (!doubleConfirm) {
+      alert("İşlem iptal edildi.");
+      return;
+    }
+
+    try {
+      setActionLoading(true);
+      const token = localStorage.getItem("token");
+
+      const response = await fetch("/api/admin/season-reset", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ confirmationText: "RESET" })
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Sezon sıfırlama başarısız");
+      }
+
+      const result = await response.json();
+      alert(
+        `✅ ${result.message}\n\n` +
+        `📊 Sıfırlanan veriler:\n` +
+        `• ${result.data.resetUsers} kullanıcı\n` +
+        `• ${result.data.deletedBattles} battle\n` +
+        `• ${result.data.deletedNotifications} bildirim`
+      );
+
+      // Reload data
+      await loadData();
+    } catch (err) {
+      console.error("❌ Sezon sıfırlama hatası:", err);
+      alert("Hata: " + err.message);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
   const openModal = (type, user = null) => {
     setShowModal(type);
     setModalData(user);
@@ -453,6 +518,13 @@ const AdminPanel = ({ onBack, onViewUserProfile }) => {
         >
           <span className="nav-icon">📢</span>
           <span>Bildirimler</span>
+        </button>
+        <button 
+          className={`nav-tab ${activeTab === "season" ? "active" : ""}`}
+          onClick={() => setActiveTab("season")}
+        >
+          <span className="nav-icon">🔄</span>
+          <span>Sezon Sıfırlama</span>
         </button>
       </div>
 
@@ -1040,7 +1112,77 @@ const AdminPanel = ({ onBack, onViewUserProfile }) => {
           </div>
         )}
 
-        {!["stats", "battles", "users", "badges", "notifications"].includes(activeTab) && (
+        {activeTab === "season" && (
+          <div className="season-reset-management">
+            <div className="section-header">
+              <h2>🔄 Sezon Sıfırlama</h2>
+            </div>
+
+            <div className="danger-zone">
+              <div className="danger-warning">
+                <div className="warning-icon">⚠️</div>
+                <div className="warning-content">
+                  <h3>Tehlikeli Alan</h3>
+                  <p>Bu işlem geri alınamaz! Lütfen dikkatli olun.</p>
+                </div>
+              </div>
+
+              <div className="reset-info">
+                <h4>🔄 Sezon Sıfırlama İşlemi:</h4>
+                <ul className="reset-effects">
+                  <li>✅ Tüm kullanıcıların rating'i <strong>1000</strong>'e sıfırlanacak</li>
+                  <li>✅ Tüm galibiyet/mağlubiyet kayıtları <strong>0</strong>'a dönecek</li>
+                  <li>✅ Tüm battle kayıtları <strong>silinecek</strong></li>
+                  <li>✅ Tüm bildirimler <strong>temizlenecek</strong></li>
+                  <li>✅ Kullanıcılara yeni sezon bildirimi <strong>gönderilecek</strong></li>
+                  <li>⚠️ Rozetler ve kullanıcı hesapları <strong>korunacak</strong></li>
+                </ul>
+              </div>
+
+              <div className="reset-stats">
+                <h4>📊 Mevcut Durum:</h4>
+                <div className="stats-grid">
+                  <div className="stat-card">
+                    <div className="stat-icon">👥</div>
+                    <div className="stat-content">
+                      <div className="stat-label">Toplam Kullanıcı</div>
+                      <div className="stat-value">{stats?.totalUsers || 0}</div>
+                    </div>
+                  </div>
+                  <div className="stat-card">
+                    <div className="stat-icon">⚔️</div>
+                    <div className="stat-content">
+                      <div className="stat-label">Toplam Battle</div>
+                      <div className="stat-value">{stats?.totalBattles || 0}</div>
+                    </div>
+                  </div>
+                  <div className="stat-card">
+                    <div className="stat-icon">📊</div>
+                    <div className="stat-content">
+                      <div className="stat-label">Ortalama Rating</div>
+                      <div className="stat-value">{stats?.averageRating?.toFixed(0) || 1000}</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="reset-action">
+                <button
+                  className="btn-danger-large"
+                  onClick={handleSeasonReset}
+                  disabled={actionLoading}
+                >
+                  {actionLoading ? "⏳ İşlem devam ediyor..." : "🔄 Sezonu Sıfırla"}
+                </button>
+                <p className="reset-disclaimer">
+                  Bu butona tıkladığınızda size onay mesajları gösterilecektir.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {!["stats", "battles", "users", "badges", "notifications", "season"].includes(activeTab) && (
           <div className="coming-soon">
             <div className="coming-soon-icon">🚧</div>
             <h3>Yakında Gelecek</h3>

@@ -2352,3 +2352,227 @@
     font-size: 1rem;
   }
 }
+
+/* ============ SEASON RESET MANAGEMENT ============ */
+
+.season-reset-management {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.danger-zone {
+  background: rgba(220, 38, 38, 0.05);
+  border: 2px solid rgba(220, 38, 38, 0.3);
+  border-radius: 16px;
+  padding: 2rem;
+  margin-top: 1.5rem;
+}
+
+.danger-warning {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  background: rgba(220, 38, 38, 0.1);
+  border: 1px solid rgba(220, 38, 38, 0.4);
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.warning-icon {
+  font-size: 3rem;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.1); opacity: 0.8; }
+}
+
+.warning-content h3 {
+  color: #dc2626;
+  font-size: 1.5rem;
+  margin: 0 0 0.5rem 0;
+  font-weight: 700;
+}
+
+.warning-content p {
+  color: rgba(255, 255, 255, 0.8);
+  margin: 0;
+  font-size: 1rem;
+}
+
+.reset-info {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.reset-info h4 {
+  color: white;
+  font-size: 1.2rem;
+  margin: 0 0 1rem 0;
+  font-weight: 600;
+}
+
+.reset-effects {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.reset-effects li {
+  color: rgba(255, 255, 255, 0.9);
+  padding: 0.75rem;
+  margin-bottom: 0.5rem;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 8px;
+  font-size: 1rem;
+  border-left: 3px solid rgba(220, 38, 38, 0.5);
+}
+
+.reset-effects li strong {
+  color: #dc2626;
+  font-weight: 700;
+}
+
+.reset-stats {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.reset-stats h4 {
+  color: white;
+  font-size: 1.2rem;
+  margin: 0 0 1rem 0;
+  font-weight: 600;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.stat-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 1.25rem;
+  transition: all 0.3s ease;
+}
+
+.stat-card:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(220, 38, 38, 0.3);
+  transform: translateY(-2px);
+}
+
+.stat-icon {
+  font-size: 2.5rem;
+}
+
+.stat-content {
+  flex: 1;
+}
+
+.stat-label {
+  display: block;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.875rem;
+  margin-bottom: 0.25rem;
+  font-weight: 500;
+}
+
+.stat-value {
+  display: block;
+  color: white;
+  font-size: 1.75rem;
+  font-weight: 700;
+}
+
+.reset-action {
+  text-align: center;
+  padding: 1.5rem 0;
+}
+
+.btn-danger-large {
+  background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
+  color: white;
+  border: none;
+  padding: 1.25rem 3rem;
+  font-size: 1.2rem;
+  font-weight: 700;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(220, 38, 38, 0.4);
+  min-width: 300px;
+}
+
+.btn-danger-large:hover:not(:disabled) {
+  background: linear-gradient(135deg, #991b1b 0%, #7f1d1d 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(220, 38, 38, 0.6);
+}
+
+.btn-danger-large:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.reset-disclaimer {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.875rem;
+  margin-top: 1rem;
+  font-style: italic;
+}
+
+@media (max-width: 768px) {
+  .season-reset-management {
+    padding: 0;
+  }
+
+  .danger-zone {
+    padding: 1.5rem;
+    margin: 1rem;
+  }
+
+  .danger-warning {
+    flex-direction: column;
+    text-align: center;
+    padding: 1.25rem;
+  }
+
+  .warning-icon {
+    font-size: 2.5rem;
+  }
+
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .btn-danger-large {
+    width: 100%;
+    min-width: auto;
+    padding: 1rem 1.5rem;
+    font-size: 1rem;
+  }
+}
+
+
+/* ============ SEASON RESET MANAGEMENT ============ */
+
+.season-reset-management {
+  max-width: 900px;
+  margin: 0 auto;
+}
