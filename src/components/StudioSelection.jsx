@@ -23,6 +23,7 @@ const StudioSelection = ({ battleId, onBack, onComplete }) => {
     try {
       setLoading(true);
       console.log('🏢 Battle ve stüdyolar yükleniyor...');
+      console.log('👤 Current user:', currentUser);
       
       // Battle detayını yükle
       const battleResponse = await battlesApi.getBattle(battleId);
@@ -30,13 +31,19 @@ const StudioSelection = ({ battleId, onBack, onComplete }) => {
       const battleData = battleResponse.data || battleResponse;
       setBattle(battleData);
 
-      // Eğer zaten stüdyo seçimi yapılmışsa, kullanıcıyı engelle
+      // Sadece MEVCUT KULLANICININ stüdyo seçimi yapıp yapmadığını kontrol et
       if (battleData.studioPreferences && battleData.studioPreferences.length > 0) {
-        console.log('⚠️ Stüdyo seçimi zaten yapılmış!');
-        setAlreadySelected(true);
-        setError('Stüdyo seçimi zaten yapıldı. Tekrar seçim yapamazsınız.');
-        setLoading(false);
-        return;
+        // Bu kullanıcının seçim yapıp yapmadığını kontrol et
+        const currentUserPreferences = battleData.studioPreferences.filter(
+          pref => pref.userId === currentUser?.id
+        );
+        
+        if (currentUserPreferences.length > 0) {
+          console.log('⚠️ Bu kullanıcı zaten stüdyo seçimi yapmış!');
+          setAlreadySelected(true);
+          setLoading(false);
+          return;
+        }
       }
 
       // Stüdyoları yükle
@@ -119,10 +126,11 @@ const StudioSelection = ({ battleId, onBack, onComplete }) => {
 
       setSuccess('Stüdyo seçimlerin kaydedildi! ✅');
       
+      // Başarılı seçimden sonra 1.5 saniye bekle ve geri dön
       setTimeout(() => {
         if (onComplete) onComplete();
         else if (onBack) onBack();
-      }, 2000);
+      }, 1500);
     } catch (err) {
       setError('Stüdyo seçimleri kaydedilemedi: ' + err.message);
     } finally {
@@ -145,12 +153,44 @@ const StudioSelection = ({ battleId, onBack, onComplete }) => {
       </div>
 
       {alreadySelected ? (
-        <div className="already-selected-message">
-          <div className="warning-icon">⚠️</div>
-          <h2>Stüdyo Seçimi Zaten Yapıldı</h2>
-          <p>Bu battle için stüdyo seçiminiz daha önce kaydedilmiştir.</p>
-          <p>Tekrar seçim yapamazsınız. Rakibinizin de seçim yapmasını ve stüdyoların onaylamasını bekleyin.</p>
-          <button className="back-btn-large" onClick={onBack}>← Geri Dön</button>
+        <div className="already-selected-message" style={{
+          background: 'rgba(34, 197, 94, 0.1)',
+          border: '2px solid rgba(34, 197, 94, 0.3)',
+          borderRadius: '16px',
+          padding: '40px',
+          textAlign: 'center',
+          maxWidth: '600px',
+          margin: '60px auto',
+          boxShadow: '0 8px 32px rgba(0,0,0,0.3)'
+        }}>
+          <div style={{ fontSize: '64px', marginBottom: '20px' }}>✅</div>
+          <h2 style={{ fontSize: '28px', marginBottom: '15px', color: '#22c55e' }}>
+            Stüdyo Seçiminiz Tamamlandı
+          </h2>
+          <p style={{ fontSize: '16px', color: 'rgba(255,255,255,0.8)', marginBottom: '10px' }}>
+            Battle için stüdyo tercihlerinizi başarıyla kaydettiniz.
+          </p>
+          <p style={{ fontSize: '14px', color: 'rgba(255,255,255,0.6)', marginBottom: '30px' }}>
+            Rakibinizin seçimini ve stüdyo onaylarını bekleyin.
+          </p>
+          <button 
+            onClick={onBack}
+            style={{
+              background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
+              border: 'none',
+              borderRadius: '12px',
+              padding: '15px 40px',
+              color: 'white',
+              fontSize: '16px',
+              fontWeight: 'bold',
+              cursor: 'pointer',
+              transition: 'transform 0.2s'
+            }}
+            onMouseEnter={(e) => e.target.style.transform = 'scale(1.05)'}
+            onMouseLeave={(e) => e.target.style.transform = 'scale(1)'}
+          >
+            ← Ana Sayfaya Dön
+          </button>
         </div>
       ) : (
         <>
