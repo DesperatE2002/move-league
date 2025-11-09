@@ -45,3 +45,6 @@ export function getUserFromRequest(request: Request): any | null {
   const token = authHeader.substring(7);
   return verifySessionToken(token);
 }
+
+// Alias for verifyAuth compatibility
+export const verifyAuth = getUserFromRequest;

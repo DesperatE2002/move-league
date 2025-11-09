@@ -31,6 +31,9 @@ const AdminPanel = ({ onBack, onViewUserProfile }) => {
   const [allBadges, setAllBadges] = useState([]);
   const [badgesLoading, setBadgesLoading] = useState(false);
   
+  // Season reset stats
+  const [totalStats, setTotalStats] = useState({ totalUsers: 0, totalBattles: 0, averageRating: 1000 });
+  
   const currentUser = authApi.getCurrentUser();
 
   // Debounce search input
@@ -139,6 +142,23 @@ const AdminPanel = ({ onBack, onViewUserProfile }) => {
           }
         }
         setBadgesLoading(false);
+      } else if (activeTab === "season") {
+        // Load total stats for season reset page
+        const allStatsResponse = await fetch(`/api/admin/stats?period=all`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json"
+          }
+        });
+        
+        if (allStatsResponse.ok) {
+          const data = await allStatsResponse.json();
+          setTotalStats({
+            totalUsers: data.data?.totalUsers || 0,
+            totalBattles: data.data?.totalBattles || 0,
+            averageRating: data.data?.averageRating || 1000
+          });
+        }
       }
 
       console.log("✅ Admin panel verileri yüklendi");
@@ -1146,21 +1166,21 @@ const AdminPanel = ({ onBack, onViewUserProfile }) => {
                     <div className="stat-icon">👥</div>
                     <div className="stat-content">
                       <div className="stat-label">Toplam Kullanıcı</div>
-                      <div className="stat-value">{stats?.totalUsers || 0}</div>
+                      <div className="stat-value">{totalStats.totalUsers}</div>
                     </div>
                   </div>
                   <div className="stat-card">
                     <div className="stat-icon">⚔️</div>
                     <div className="stat-content">
                       <div className="stat-label">Toplam Battle</div>
-                      <div className="stat-value">{stats?.totalBattles || 0}</div>
+                      <div className="stat-value">{totalStats.totalBattles}</div>
                     </div>
                   </div>
                   <div className="stat-card">
                     <div className="stat-icon">📊</div>
                     <div className="stat-content">
                       <div className="stat-label">Ortalama Rating</div>
-                      <div className="stat-value">{stats?.averageRating?.toFixed(0) || 1000}</div>
+                      <div className="stat-value">{totalStats.averageRating.toFixed(0)}</div>
                     </div>
                   </div>
                 </div>
