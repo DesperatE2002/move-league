@@ -202,6 +202,7 @@ export async function POST(request: NextRequest) {
     return successResponse(battle, 'Battle talebi gönderildi', 201);
   } catch (error) {
     console.error('Create battle error:', error);
-    return errorResponse('Battle talebi oluşturulamadı', 500, error);
+    console.error('Error details:', JSON.stringify(error, null, 2));
+    return errorResponse('Battle talebi oluşturulamadı: ' + (error.message || 'Bilinmeyen hata'), 500, error);
   }
 }
