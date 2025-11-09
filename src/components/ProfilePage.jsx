@@ -13,6 +13,8 @@ const ProfilePage = ({ currentUser, onBackClick, viewingUser = null }) => {
   });
   const [passwordError, setPasswordError] = useState('');
   const [passwordSuccess, setPasswordSuccess] = useState('');
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [avatarError, setAvatarError] = useState('');
   
   // Başka kullanıcının profilini mi görüntülüyoruz?
   const isViewingOther = viewingUser && viewingUser.id !== currentUser?.id;
@@ -95,6 +97,69 @@ const ProfilePage = ({ currentUser, onBackClick, viewingUser = null }) => {
     } catch (error) {
       setPasswordError(error.message || 'Şifre değiştirme başarısız');
       console.error('Password change error:', error);
+    }
+  };
+
+  const handleAvatarUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      setAvatarError('Lütfen bir resim dosyası seçin');
+      return;
+    }
+
+    // Validate file size (max 2MB)
+    if (file.size > 2 * 1024 * 1024) {
+      setAvatarError('Resim boyutu 2MB\'dan küçük olmalı');
+      return;
+    }
+
+    setUploadingAvatar(true);
+    setAvatarError('');
+
+    try {
+      // Convert to base64
+      const reader = new FileReader();
+      reader.onloadend = async () => {
+        try {
+          const base64String = reader.result;
+          
+          // Upload avatar
+          const response = await authApi.uploadAvatar(base64String);
+          
+          // Update user state
+          setUser(response.user);
+          localStorage.setItem('user', JSON.stringify(response.user));
+          
+          setUploadingAvatar(false);
+        } catch (error) {
+          setAvatarError(error.message || 'Avatar yükleme başarısız');
+          setUploadingAvatar(false);
+        }
+      };
+      reader.readAsDataURL(file);
+    } catch (error) {
+      setAvatarError('Dosya okuma hatası');
+      setUploadingAvatar(false);
+    }
+  };
+
+  const handleRemoveAvatar = async () => {
+    if (!confirm('Profil fotoğrafınızı silmek istediğinizden emin misiniz?')) {
+      return;
+    }
+
+    setUploadingAvatar(true);
+    try {
+      const response = await authApi.removeAvatar();
+      setUser(response.user);
+      localStorage.setItem('user', JSON.stringify(response.user));
+    } catch (error) {
+      setAvatarError(error.message || 'Avatar silme başarısız');
+    } finally {
+      setUploadingAvatar(false);
     }
   };
 
@@ -231,16 +296,96 @@ const ProfilePage = ({ currentUser, onBackClick, viewingUser = null }) => {
             width: '80px',
             height: '80px',
             borderRadius: '50%',
-            background: 'linear-gradient(135deg, #dc2626 0%, #991b1b 100%)',
+            background: user.avatar && user.avatar.startsWith('data:image/') 
+              ? `url(${user.avatar})` 
+              : 'linear-gradient(135deg, #dc2626 0%, #991b1b 100%)',
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             fontSize: '36px',
             marginBottom: '20px',
-            margin: '0 auto 20px'
+            margin: '0 auto 20px',
+            position: 'relative'
           }}>
-            {user.avatar || '👤'}
+            {!user.avatar || !user.avatar.startsWith('data:image/') ? '👤' : ''}
+            
+            {!isViewingOther && (
+              <div style={{
+                position: 'absolute',
+                bottom: '-10px',
+                right: '-10px',
+                display: 'flex',
+                gap: '5px'
+              }}>
+                <label htmlFor="avatar-upload" style={{
+                  width: '32px',
+                  height: '32px',
+                  borderRadius: '50%',
+                  background: 'rgba(220,38,38,0.9)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: uploadingAvatar ? 'wait' : 'pointer',
+                  border: '2px solid white',
+                  fontSize: '14px',
+                  transition: 'transform 0.2s'
+                }}
+                onMouseEnter={(e) => e.target.style.transform = 'scale(1.1)'}
+                onMouseLeave={(e) => e.target.style.transform = 'scale(1)'}
+                >
+                  {uploadingAvatar ? '⏳' : '📷'}
+                </label>
+                <input
+                  id="avatar-upload"
+                  type="file"
+                  accept="image/*"
+                  onChange={handleAvatarUpload}
+                  disabled={uploadingAvatar}
+                  style={{ display: 'none' }}
+                />
+                
+                {user.avatar && (
+                  <button
+                    onClick={handleRemoveAvatar}
+                    disabled={uploadingAvatar}
+                    style={{
+                      width: '32px',
+                      height: '32px',
+                      borderRadius: '50%',
+                      background: 'rgba(220,38,38,0.9)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      cursor: uploadingAvatar ? 'wait' : 'pointer',
+                      border: '2px solid white',
+                      fontSize: '14px',
+                      transition: 'transform 0.2s'
+                    }}
+                    onMouseEnter={(e) => e.target.style.transform = 'scale(1.1)'}
+                    onMouseLeave={(e) => e.target.style.transform = 'scale(1)'}
+                  >
+                    🗑️
+                  </button>
+                )}
+              </div>
+            )}
           </div>
+
+          {avatarError && (
+            <div style={{
+              background: 'rgba(220,38,38,0.2)',
+              border: '1px solid rgba(220,38,38,0.4)',
+              borderRadius: '8px',
+              padding: '10px',
+              marginBottom: '15px',
+              fontSize: '14px',
+              textAlign: 'center'
+            }}>
+              {avatarError}
+            </div>
+          )}
 
           <h2 style={{
             fontSize: '24px',

@@ -132,6 +132,19 @@ export const authApi = {
   getTeamLeague: () => {
     return apiRequest('/leagues/team');
   },
+
+  uploadAvatar: (base64Image) => {
+    return apiRequest('/profile/avatar', {
+      method: 'POST',
+      body: JSON.stringify({ avatar: base64Image }),
+    });
+  },
+
+  removeAvatar: () => {
+    return apiRequest('/profile/avatar', {
+      method: 'DELETE',
+    });
+  },
 };
 
 // Users API
