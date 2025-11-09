@@ -41,6 +41,12 @@ const RefereePanel = ({ onBack }) => {
     }
   });
 
+  // No-show tracking
+  const [noShow, setNoShow] = useState({
+    initiator: false,
+    challenged: false,
+  });
+
   useEffect(() => {
     if (currentUser?.role !== 'REFEREE') {
       alert('Bu sayfaya erişim yetkiniz yok!');
@@ -69,6 +75,12 @@ const RefereePanel = ({ onBack }) => {
           choreography: 0,
         }
       });
+      
+      // No-show durumlarını sıfırla
+      setNoShow({
+        initiator: false,
+        challenged: false,
+      });
     }
   }, [selectedBattle?.id]); // selectedBattle.id değiştiğinde tetikle
 
@@ -86,7 +98,7 @@ const RefereePanel = ({ onBack }) => {
       const myBattles = battlesData.filter(b => {
         console.log(`🔍 Battle ${b.id}: refereeId=${b.refereeId}, currentUserId=${currentUser?.id}, status=${b.status}, match=${b.refereeId === currentUser?.id}`);
         return b.refereeId === currentUser?.id && 
-               ['CONFIRMED', 'BATTLE_SCHEDULED', 'STUDIO_PENDING'].includes(b.status);
+               ['CONFIRMED', 'BATTLE_SCHEDULED', 'LIVE'].includes(b.status);
       });
       
       setBattles(myBattles);
@@ -117,6 +129,59 @@ const RefereePanel = ({ onBack }) => {
   const handleSubmitScores = async () => {
     if (!selectedBattle) return;
 
+    // No-show kontrolü
+    if (noShow.initiator && noShow.challenged) {
+      if (!window.confirm('Her iki katılımcı da gelmedi olarak işaretlendi. Battle iptal edilecek ve her ikisi de -50 puan cezası alacak. Onaylıyor musunuz?')) {
+        return;
+      }
+
+      try {
+        setScoring(true);
+        await battlesApi.updateBattle(selectedBattle.id, {
+          action: 'BOTH_NO_SHOW',
+        });
+        alert('✅ Battle iptal edildi, her iki katılımcı da -50 puan cezası aldı.');
+        setSelectedBattle(null);
+        await loadBattles();
+        return;
+      } catch (err) {
+        alert('Hata: ' + err.message);
+        setScoring(false);
+        return;
+      }
+    }
+
+    // Tek taraf gelmedi
+    if (noShow.initiator || noShow.challenged) {
+      const noShowName = noShow.initiator ? selectedBattle.initiator.name : selectedBattle.challenged.name;
+      const winnerId = noShow.initiator ? selectedBattle.challengedId : selectedBattle.initiatorId;
+      const winnerName = noShow.initiator ? selectedBattle.challenged.name : selectedBattle.initiator.name;
+
+      if (!window.confirm(`${noShowName} gelmedi olarak işaretlendi.\n\n${noShowName}: -50 puan cezası\n${winnerName}: Otomatik kazanan (puan artmaz)\n\nOnaylıyor musunuz?`)) {
+        return;
+      }
+
+      try {
+        setScoring(true);
+        await battlesApi.updateBattle(selectedBattle.id, {
+          action: 'SINGLE_NO_SHOW',
+          initiatorNoShow: noShow.initiator,
+          challengedNoShow: noShow.challenged,
+          winnerId: winnerId,
+        });
+        alert(`✅ ${noShowName} gelmedi. ${winnerName} kazanan ilan edildi.`);
+        setSelectedBattle(null);
+        setNoShow({ initiator: false, challenged: false });
+        await loadBattles();
+        return;
+      } catch (err) {
+        alert('Hata: ' + err.message);
+        setScoring(false);
+        return;
+      }
+    }
+
+    // Normal puanlama
     const initiatorTotal = calculateTotal('initiator');
     const challengedTotal = calculateTotal('challenged');
 
@@ -148,6 +213,7 @@ const RefereePanel = ({ onBack }) => {
         initiator: { technique: 0, creativity: 0, performance: 0, musicality: 0, choreography: 0 },
         challenged: { technique: 0, creativity: 0, performance: 0, musicality: 0, choreography: 0 }
       });
+      setNoShow({ initiator: false, challenged: false });
       await loadBattles();
     } catch (err) {
       console.error('❌ Puanlama kaydetme hatası:', err);
@@ -198,6 +264,39 @@ const RefereePanel = ({ onBack }) => {
               📅 {new Date(selectedBattle.scheduledDate).toLocaleDateString('tr-TR')}
             </div>
           )}
+          
+          {/* No-Show Checkboxes */}
+          <div className="no-show-section" style={{
+            marginTop: '20px',
+            padding: '15px',
+            background: 'rgba(255, 59, 48, 0.1)',
+            border: '1px solid rgba(255, 59, 48, 0.3)',
+            borderRadius: '8px'
+          }}>
+            <h4 style={{ marginBottom: '10px', fontSize: '14px', color: '#ff3b30' }}>
+              ⚠️ Katılmayan Var mı?
+            </h4>
+            <div style={{ display: 'flex', gap: '20px' }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+                <input
+                  type="checkbox"
+                  checked={noShow.initiator}
+                  onChange={(e) => setNoShow(prev => ({ ...prev, initiator: e.target.checked }))}
+                  style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+                />
+                <span>{selectedBattle.initiator.name} Gelmedi (-50 puan)</span>
+              </label>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+                <input
+                  type="checkbox"
+                  checked={noShow.challenged}
+                  onChange={(e) => setNoShow(prev => ({ ...prev, challenged: e.target.checked }))}
+                  style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+                />
+                <span>{selectedBattle.challenged.name} Gelmedi (-50 puan)</span>
+              </label>
+            </div>
+          </div>
         </div>
 
         <div className="scoring-section">
@@ -247,6 +346,46 @@ const RefereePanel = ({ onBack }) => {
         </div>
 
         <div className="submit-section">
+          {/* Battle'ı LIVE yap butonu */}
+          {selectedBattle.status !== 'LIVE' && (
+            <button
+              className="btn-go-live"
+              onClick={async () => {
+                if (window.confirm('Battle\'ı canlı duruma getirmek istiyor musunuz?')) {
+                  try {
+                    await battlesApi.updateBattle(selectedBattle.id, { action: 'START_LIVE' });
+                    alert('✅ Battle canlı duruma getirildi!');
+                    setSelectedBattle(prev => ({ ...prev, status: 'LIVE' }));
+                  } catch (err) {
+                    alert('Hata: ' + err.message);
+                  }
+                }
+              }}
+              style={{
+                background: 'linear-gradient(90deg, #FF3B30, #d42b20)',
+                marginBottom: '15px'
+              }}
+            >
+              🔴 Battle\'ı LIVE Yap
+            </button>
+          )}
+          
+          {selectedBattle.status === 'LIVE' && (
+            <div style={{
+              background: 'rgba(255, 59, 48, 0.2)',
+              border: '2px solid #FF3B30',
+              borderRadius: '12px',
+              padding: '15px',
+              marginBottom: '15px',
+              textAlign: 'center',
+              animation: 'pulse 2s infinite'
+            }}>
+              <span style={{ fontSize: '18px', fontWeight: 'bold', color: '#FF3B30' }}>
+                🔴 CANLI
+              </span>
+            </div>
+          )}
+          
           <button
             className="btn-submit"
             onClick={handleSubmitScores}

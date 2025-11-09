@@ -409,6 +409,167 @@ export async function PATCH(
         return successResponse(updatedBattle, 'Hakem başarıyla atandı');
       }
 
+      case 'SINGLE_NO_SHOW': {
+        // Tek katılımcı gelmedi
+        if (currentUser.role !== 'REFEREE') {
+          return errorResponse('Sadece hakemler bu işlemi yapabilir', 403);
+        }
+
+        if (battle.refereeId !== currentUser.userId) {
+          return errorResponse('Bu battle\'a atanmış hakem değilsiniz', 403);
+        }
+
+        const { initiatorNoShow, challengedNoShow, winnerId } = body;
+
+        if (!winnerId) {
+          return errorResponse('Kazanan ID gerekli', 400);
+        }
+
+        const loserId = winnerId === battle.initiatorId ? battle.challengedId : battle.initiatorId;
+
+        // Gelmeyene -50 puan cezası
+        await prisma.user.update({
+          where: { id: loserId },
+          data: { rating: { decrement: 50 } },
+        });
+
+        // Battle'ı tamamla (kazanan puan almaz)
+        await prisma.battleRequest.update({
+          where: { id: battleId },
+          data: {
+            status: 'COMPLETED',
+            winnerId: winnerId,
+            initiatorNoShow: initiatorNoShow,
+            challengedNoShow: challengedNoShow,
+            completedAt: new Date(),
+          },
+        });
+
+        // Bildirimleri gönder
+        const noShowUser = loserId === battle.initiatorId ? battle.initiator : battle.challenged;
+        const winnerUser = winnerId === battle.initiatorId ? battle.initiator : battle.challenged;
+
+        await prisma.notification.create({
+          data: {
+            userId: loserId,
+            type: 'GENERAL',
+            title: 'Battle: Gelmeme Cezası',
+            message: `${battle.title || 'Battle'}'a katılmadınız. -50 puan cezası aldınız.`,
+            battleRequestId: battleId,
+          },
+        });
+
+        await prisma.notification.create({
+          data: {
+            userId: winnerId,
+            type: 'GENERAL',
+            title: 'Battle: Otomatik Kazandınız',
+            message: `${noShowUser.name} battle'a katılmadı. Otomatik kazandınız (puan artışı yok).`,
+            battleRequestId: battleId,
+          },
+        });
+
+        return successResponse({ success: true }, 'No-show cezası uygulandı');
+      }
+
+      case 'BOTH_NO_SHOW': {
+        // Her iki katılımcı da gelmedi
+        if (currentUser.role !== 'REFEREE') {
+          return errorResponse('Sadece hakemler bu işlemi yapabilir', 403);
+        }
+
+        if (battle.refereeId !== currentUser.userId) {
+          return errorResponse('Bu battle\'a atanmış hakem değilsiniz', 403);
+        }
+
+        // Her ikisine de -50 puan cezası
+        await Promise.all([
+          prisma.user.update({
+            where: { id: battle.initiatorId },
+            data: { rating: { decrement: 50 } },
+          }),
+          prisma.user.update({
+            where: { id: battle.challengedId },
+            data: { rating: { decrement: 50 } },
+          }),
+        ]);
+
+        // Battle'ı iptal et
+        await prisma.battleRequest.update({
+          where: { id: battleId },
+          data: {
+            status: 'CANCELLED',
+            initiatorNoShow: true,
+            challengedNoShow: true,
+            completedAt: new Date(),
+          },
+        });
+
+        // Bildirimleri gönder
+        await Promise.all([
+          prisma.notification.create({
+            data: {
+              userId: battle.initiatorId,
+              type: 'GENERAL',
+              title: 'Battle İptal: Gelmeme Cezası',
+              message: `${battle.title || 'Battle'}'a katılmadınız. -50 puan cezası aldınız.`,
+              battleRequestId: battleId,
+            },
+          }),
+          prisma.notification.create({
+            data: {
+              userId: battle.challengedId,
+              type: 'GENERAL',
+              title: 'Battle İptal: Gelmeme Cezası',
+              message: `${battle.title || 'Battle'}'a katılmadınız. -50 puan cezası aldınız.`,
+              battleRequestId: battleId,
+            },
+          }),
+        ]);
+
+        return successResponse({ success: true }, 'Her iki katılımcıya da ceza uygulandı');
+      }
+
+      case 'START_LIVE': {
+        // Battle'ı canlı duruma getir
+        if (currentUser.role !== 'REFEREE' && currentUser.role !== 'ADMIN') {
+          return errorResponse('Sadece hakem veya admin bu işlemi yapabilir', 403);
+        }
+
+        if (battle.status !== 'BATTLE_SCHEDULED' && battle.status !== 'CONFIRMED') {
+          return errorResponse('Battle henüz planlanmamış', 400);
+        }
+
+        const updatedBattle = await prisma.battleRequest.update({
+          where: { id: battleId },
+          data: { status: 'LIVE' },
+        });
+
+        // Katılımcılara bildirim
+        await Promise.all([
+          prisma.notification.create({
+            data: {
+              userId: battle.initiatorId,
+              type: 'GENERAL',
+              title: 'Battle Başladı! 🔴 LIVE',
+              message: `${battle.title || 'Battle'} artık canlı!`,
+              battleRequestId: battleId,
+            },
+          }),
+          prisma.notification.create({
+            data: {
+              userId: battle.challengedId,
+              type: 'GENERAL',
+              title: 'Battle Başladı! 🔴 LIVE',
+              message: `${battle.title || 'Battle'} artık canlı!`,
+              battleRequestId: battleId,
+            },
+          }),
+        ]);
+
+        return successResponse(updatedBattle, 'Battle canlı duruma getirildi');
+      }
+
       case 'SUBMIT_SCORES': {
         // Hakem puanlama sistemi
         if (currentUser.role !== 'REFEREE') {
