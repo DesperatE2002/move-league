@@ -33,11 +33,11 @@ const BattlesPage = ({ onBack, onBattleClick }) => {
       PENDING: { text: 'Bekliyor', color: '#FFA500', icon: '⏳' },
       CHALLENGER_ACCEPTED: { text: 'Kabul Edildi', color: '#34C759', icon: '✅' },
       STUDIO_PENDING: { text: 'Stüdyo Bekliyor', color: '#5856D6', icon: '🏢' },
-      STUDIO_REJECTED: { text: 'Stüdyo Reddetti', color: '#FF3B30', icon: '❌' },
+      STUDIO_REJECTED: { text: 'Stüdyo Reddetti', color: 'var(--accent-red-bright)', icon: '❌' },
       CONFIRMED: { text: 'Onaylandı', color: '#34C759', icon: '✅' },
       BATTLE_SCHEDULED: { text: 'Planlandı', color: '#5856D6', icon: '📅' },
-      LIVE: { text: '🔴 CANLI', color: '#FF3B30', icon: '🔴' },
-      REJECTED: { text: 'Reddedildi', color: '#FF3B30', icon: '❌' },
+      LIVE: { text: '🔴 CANLI', color: 'var(--accent-red-bright)', icon: '🔴' },
+      REJECTED: { text: 'Reddedildi', color: 'var(--accent-red-bright)', icon: '❌' },
       COMPLETED: { text: 'Tamamlandı', color: '#8E8E93', icon: '🏁' },
       CANCELLED: { text: 'İptal Edildi', color: '#8E8E93', icon: '🚫' },
     };
@@ -269,7 +269,7 @@ const BattlesPage = ({ onBack, onBattleClick }) => {
 
         .create-btn {
           padding: 0.75rem 1.5rem;
-          background: linear-gradient(135deg, #dc2626, #991b1b);
+          background: linear-gradient(135deg, var(--accent-red), var(--accent-red-dark));
           border: none;
           border-radius: 10px;
           color: white;
@@ -313,7 +313,7 @@ const BattlesPage = ({ onBack, onBattleClick }) => {
         }
 
         .tab.active {
-          background: linear-gradient(135deg, #dc2626, #991b1b);
+          background: linear-gradient(135deg, var(--accent-red), var(--accent-red-dark));
           color: white;
           font-weight: 600;
         }
@@ -331,7 +331,7 @@ const BattlesPage = ({ onBack, onBattleClick }) => {
           width: 50px;
           height: 50px;
           border: 4px solid rgba(255, 255, 255, 0.1);
-          border-top-color: #dc2626;
+          border-top-color: var(--accent-red);
           border-radius: 50%;
           animation: spin 1s linear infinite;
           margin: 0 auto 1rem;
@@ -366,7 +366,7 @@ const BattlesPage = ({ onBack, onBattleClick }) => {
 
         .primary-btn {
           padding: 1rem 2rem;
-          background: linear-gradient(135deg, #dc2626, #991b1b);
+          background: linear-gradient(135deg, var(--accent-red), var(--accent-red-dark));
           border: none;
           border-radius: 10px;
           color: white;
@@ -378,7 +378,7 @@ const BattlesPage = ({ onBack, onBattleClick }) => {
 
         .primary-btn:hover {
           transform: translateY(-2px);
-          box-shadow: 0 10px 30px rgba(220, 38, 38, 0.4);
+          box-shadow: 0 10px 30px rgba(225, 29, 72, 0.5);
         }
 
         .battles-grid {
@@ -401,7 +401,7 @@ const BattlesPage = ({ onBack, onBattleClick }) => {
         .battle-card:hover {
           transform: translateY(-5px);
           box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-          border-color: #dc2626;
+          border-color: var(--accent-red);
         }
 
         .battle-card::before {
@@ -411,7 +411,7 @@ const BattlesPage = ({ onBack, onBattleClick }) => {
           left: 0;
           right: 0;
           height: 4px;
-          background: linear-gradient(90deg, #dc2626, #991b1b);
+          background: linear-gradient(90deg, var(--accent-red), var(--accent-red-dark));
         }
 
         .status-badge {
@@ -463,7 +463,7 @@ const BattlesPage = ({ onBack, onBattleClick }) => {
           display: flex;
           align-items: center;
           justify-content: center;
-          background: linear-gradient(135deg, #dc2626, #991b1b);
+          background: linear-gradient(135deg, var(--accent-red), var(--accent-red-dark));
           font-size: 1.5rem;
           font-weight: 700;
         }
@@ -476,7 +476,7 @@ const BattlesPage = ({ onBack, onBattleClick }) => {
         .vs {
           font-size: 1.2rem;
           font-weight: 700;
-          color: #dc2626;
+          color: var(--accent-red);
           flex-shrink: 0;
         }
 

@@ -242,7 +242,7 @@ const HomePage = ({ user = "Admin" }) => {
       title: "Battle", 
       desc: "Battle'larını görüntüle ve yeni battle oluştur", 
       icon: "⚔️", 
-      color: "#FF3B30",
+      color: "var(--accent-red-bright)",
       badge: "Yeni"
     }] : []),
     // STUDIO için Battle Yönetimi
@@ -251,7 +251,7 @@ const HomePage = ({ user = "Admin" }) => {
       title: "Battle Yönetimi", 
       desc: "Stüdyonuzdaki battle taleplerini yönetin", 
       icon: "🏢", 
-      color: "#FF3B30",
+      color: "var(--accent-red-bright)",
       badge: null
     }] : []),
     // REFEREE için Battle Listesi (sadece görüntüleme + puanlama)
@@ -260,7 +260,7 @@ const HomePage = ({ user = "Admin" }) => {
       title: "Battle Listesi", 
       desc: "Görevlendirildiğiniz battle'ları görüntüleyin", 
       icon: "⚖️", 
-      color: "#FF3B30",
+      color: "var(--accent-red-bright)",
       badge: null
     }] : []),
     { 
@@ -294,7 +294,7 @@ const HomePage = ({ user = "Admin" }) => {
       title: "👑 Admin Paneli", 
       desc: "Battle yönetimi ve hakem ataması", 
       icon: "⚙️", 
-      color: "#DC2626",
+      color: "var(--accent-red)",
       badge: "Admin",
       action: 'admin-panel'
     }] : []),
@@ -427,8 +427,8 @@ const HomePage = ({ user = "Admin" }) => {
           font-family: 'Poppins', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
           min-height: 100vh;
           background: 
-            linear-gradient(135deg, rgba(0, 0, 0, 0.9) 0%, rgba(26, 5, 5, 0.95) 100%),
-            url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800"><text x="100" y="200" font-size="180" opacity="0.03" fill="%23fff">💃</text><text x="700" y="500" font-size="150" opacity="0.03" fill="%23fff">🕺</text><text x="300" y="600" font-size="120" opacity="0.02" fill="%23dc2626">♪</text><text x="900" y="300" font-size="140" opacity="0.02" fill="%23dc2626">♫</text></svg>');
+            linear-gradient(135deg, rgba(0, 0, 0, 0.85) 0%, rgba(40, 10, 10, 0.95) 100%),
+            url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800"><text x="100" y="200" font-size="180" opacity="0.05" fill="%23fff">💃</text><text x="700" y="500" font-size="150" opacity="0.05" fill="%23fff">🕺</text><text x="300" y="600" font-size="120" opacity="0.04" fill="%23dc2626">♪</text><text x="900" y="300" font-size="140" opacity="0.04" fill="%23dc2626">♫</text></svg>');
           background-size: cover, 100% 100%;
           background-attachment: fixed;
           color: #fff;
@@ -445,16 +445,16 @@ const HomePage = ({ user = "Admin" }) => {
           width: 100%;
           height: 100%;
           background: 
-            radial-gradient(circle at 20% 30%, rgba(220, 38, 38, 0.15) 0%, transparent 40%),
-            radial-gradient(circle at 80% 70%, rgba(220, 38, 38, 0.12) 0%, transparent 40%),
-            radial-gradient(circle at 50% 50%, rgba(139, 0, 0, 0.08) 0%, transparent 50%);
+            radial-gradient(circle at 20% 30%, rgba(220, 38, 38, 0.25) 0%, transparent 40%),
+            radial-gradient(circle at 80% 70%, rgba(220, 38, 38, 0.20) 0%, transparent 40%),
+            radial-gradient(circle at 50% 50%, rgba(180, 20, 20, 0.15) 0%, transparent 50%);
           pointer-events: none;
           animation: pulse 8s ease-in-out infinite;
         }
 
         @keyframes pulse {
           0%, 100% {
-            opacity: 0.6;
+            opacity: 0.7;
           }
           50% {
             opacity: 1;
@@ -463,13 +463,14 @@ const HomePage = ({ user = "Admin" }) => {
 
         /* Header */
         .header {
-          background: rgba(20, 20, 20, 0.8);
+          background: rgba(30, 10, 10, 0.85);
           backdrop-filter: blur(10px);
-          border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+          border-bottom: 2px solid rgba(220, 38, 38, 0.2);
           padding: 1rem 0;
           position: sticky;
           top: 0;
           z-index: 100;
+          box-shadow: 0 4px 20px rgba(220, 38, 38, 0.15);
         }
 
         .header-content {
@@ -491,13 +492,17 @@ const HomePage = ({ user = "Admin" }) => {
           margin: 0;
           font-size: 1.5rem;
           font-weight: 700;
-          color: #fff;
-          text-shadow: 0 0 20px rgba(255, 59, 48, 0.3);
+          background: linear-gradient(135deg, var(--accent-red-bright) 0%, var(--accent-red) 50%, var(--accent-red-dark) 100%);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
+          text-shadow: 0 0 30px rgba(255, 45, 85, 0.5);
+          filter: drop-shadow(0 0 10px rgba(225, 29, 72, 0.5));
         }
 
         .brand-tag {
-          background: rgba(255, 59, 48, 0.15);
-          color: #FF3B30;
+          background: linear-gradient(135deg, rgba(255, 59, 48, 0.25) 0%, rgba(220, 38, 38, 0.20) 100%);
+          color: #ff5a50;
           padding: 0.3rem 0.8rem;
           border-radius: 20px;
           font-size: 0.75rem;
@@ -592,7 +597,7 @@ const HomePage = ({ user = "Admin" }) => {
         .stat-value {
           font-size: 1.8rem;
           font-weight: 700;
-          color: #FF3B30;
+          color: var(--accent-red-bright);
           margin-bottom: 0.3rem;
         }
 
