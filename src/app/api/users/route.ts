@@ -18,6 +18,12 @@ export async function GET(request: NextRequest) {
     const role = searchParams.get('role'); // DANCER, STUDIO, etc.
     const search = searchParams.get('search'); // İsim veya email araması
     const danceStyle = searchParams.get('danceStyle'); // Dans kategorisi filtresi
+    
+    // Pagination parameters
+    const page = parseInt(searchParams.get('page') || '1');
+    const limit = parseInt(searchParams.get('limit') || '50'); // Default 50, max 100
+    const skip = (page - 1) * Math.min(limit, 100);
+    const take = Math.min(limit, 100);
 
     // Filtre oluştur
     const where: any = {};
@@ -39,6 +45,9 @@ export async function GET(request: NextRequest) {
       };
     }
 
+    // Toplam sayıyı al (pagination için)
+    const total = await prisma.user.count({ where });
+
     // Kullanıcıları getir
     const users = await prisma.user.findMany({
       where,
@@ -56,9 +65,23 @@ export async function GET(request: NextRequest) {
       orderBy: {
         name: 'asc',
       },
+      skip,
+      take,
     });
 
-    return successResponse(users, `${users.length} kullanıcı bulundu`);
+    return successResponse(
+      {
+        users,
+        pagination: {
+          page,
+          limit: take,
+          total,
+          totalPages: Math.ceil(total / take),
+          hasMore: skip + users.length < total,
+        }
+      }, 
+      `${users.length} kullanıcı bulundu (Toplam: ${total})`
+    );
   } catch (error) {
     console.error('Get users error:', error);
     return errorResponse('Kullanıcılar getirilemedi', 500, error);

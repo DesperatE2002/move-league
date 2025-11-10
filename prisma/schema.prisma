@@ -180,6 +180,9 @@ model BattleRequest {
   @@index([challengedId])
   @@index([status])
   @@index([selectedStudioId])
+  @@index([refereeId])
+  @@index([scheduledDate])
+  @@index([createdAt])
 }
 
 // Stüdyo tercihleri (her dansçı için ayrı)
