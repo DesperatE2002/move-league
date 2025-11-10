@@ -241,7 +241,7 @@ const BattleDetail = ({ battleId, onBack }) => {
           </div>
         )}
 
-        {battle.status === 'CHALLENGER_ACCEPTED' && (
+        {battle.status === 'CHALLENGER_ACCEPTED' && (isInitiator || isChallenged) && (
           <div className="studio-selection-section">
             <h3>✅ Battle Kabul Edildi!</h3>
             <p>Şimdi her iki taraf da en az 1 stüdyo seçmeli ve öncelik sıralaması yapmalı. Ortak olan ve en yüksek önceliğe sahip stüdyo seçilecek.</p>
