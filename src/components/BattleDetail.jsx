@@ -78,11 +78,11 @@ const BattleDetail = ({ battleId, onBack }) => {
       PENDING: { text: 'Bekliyor', color: '#FFA500', icon: '⏳' },
       CHALLENGER_ACCEPTED: { text: 'Kabul Edildi', color: '#34C759', icon: '✅' },
       STUDIO_PENDING: { text: 'Stüdyo Bekliyor', color: '#5856D6', icon: '🏢' },
-      STUDIO_REJECTED: { text: 'Stüdyo Reddetti', color: 'var(--accent-red-bright)', icon: '❌' },
+      STUDIO_REJECTED: { text: 'Stüdyo Reddetti', color: '#ff2d55', icon: '❌' },
       CONFIRMED: { text: 'Onaylandı', color: '#34C759', icon: '✅' },
       BATTLE_SCHEDULED: { text: 'Planlandı', color: '#5856D6', icon: '📅' },
-      LIVE: { text: '🔴 CANLI', color: 'var(--accent-red-bright)', icon: '🔴' },
-      REJECTED: { text: 'Reddedildi', color: 'var(--accent-red-bright)', icon: '❌' },
+      LIVE: { text: '🔴 CANLI', color: '#ff2d55', icon: '🔴' },
+      REJECTED: { text: 'Reddedildi', color: '#ff2d55', icon: '❌' },
       COMPLETED: { text: 'Tamamlandı', color: '#8E8E93', icon: '🏁' },
       CANCELLED: { text: 'İptal Edildi', color: '#8E8E93', icon: '🚫' },
     };
@@ -322,7 +322,7 @@ const BattleDetail = ({ battleId, onBack }) => {
               <div className="scores-container">
                 {/* Initiator Scores */}
                 <div className="participant-scores">
-                  <div className="participant-header" style={{ borderColor: 'var(--accent-red)' }}>
+                  <div className="participant-header" style={{ borderColor: '#e11d48' }}>
                     <div className="participant-avatar">
                       {battle.initiator.name.charAt(0).toUpperCase()}
                     </div>

@@ -242,7 +242,7 @@ const HomePage = ({ user = "Admin" }) => {
       title: "Battle", 
       desc: "Battle'larını görüntüle ve yeni battle oluştur", 
       icon: "⚔️", 
-      color: "var(--accent-red-bright)",
+      color: "#ff2d55",
       badge: "Yeni"
     }] : []),
     // STUDIO için Battle Yönetimi
@@ -251,7 +251,7 @@ const HomePage = ({ user = "Admin" }) => {
       title: "Battle Yönetimi", 
       desc: "Stüdyonuzdaki battle taleplerini yönetin", 
       icon: "🏢", 
-      color: "var(--accent-red-bright)",
+      color: "#ff2d55",
       badge: null
     }] : []),
     // REFEREE için Battle Listesi (sadece görüntüleme + puanlama)
@@ -260,7 +260,7 @@ const HomePage = ({ user = "Admin" }) => {
       title: "Battle Listesi", 
       desc: "Görevlendirildiğiniz battle'ları görüntüleyin", 
       icon: "⚖️", 
-      color: "var(--accent-red-bright)",
+      color: "#ff2d55",
       badge: null
     }] : []),
     { 
@@ -294,7 +294,7 @@ const HomePage = ({ user = "Admin" }) => {
       title: "👑 Admin Paneli", 
       desc: "Battle yönetimi ve hakem ataması", 
       icon: "⚙️", 
-      color: "var(--accent-red)",
+      color: "#e11d48",
       badge: "Admin",
       action: 'admin-panel'
     }] : []),
