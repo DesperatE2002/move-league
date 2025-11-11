@@ -242,7 +242,7 @@ const HomePage = ({ user = "Admin" }) => {
       title: "Battle", 
       desc: "Battle'larını görüntüle ve yeni battle oluştur", 
       icon: "⚔️", 
-      color: "#FF3B30",
+      color: "#ff2d55",
       badge: "Yeni"
     }] : []),
     // STUDIO için Battle Yönetimi
@@ -251,7 +251,7 @@ const HomePage = ({ user = "Admin" }) => {
       title: "Battle Yönetimi", 
       desc: "Stüdyonuzdaki battle taleplerini yönetin", 
       icon: "🏢", 
-      color: "#FF3B30",
+      color: "#ff2d55",
       badge: null
     }] : []),
     // REFEREE için Battle Listesi (sadece görüntüleme + puanlama)
@@ -260,7 +260,7 @@ const HomePage = ({ user = "Admin" }) => {
       title: "Battle Listesi", 
       desc: "Görevlendirildiğiniz battle'ları görüntüleyin", 
       icon: "⚖️", 
-      color: "#FF3B30",
+      color: "#ff2d55",
       badge: null
     }] : []),
     { 
@@ -294,7 +294,7 @@ const HomePage = ({ user = "Admin" }) => {
       title: "👑 Admin Paneli", 
       desc: "Battle yönetimi ve hakem ataması", 
       icon: "⚙️", 
-      color: "#DC2626",
+      color: "#e11d48",
       badge: "Admin",
       action: 'admin-panel'
     }] : []),
@@ -492,12 +492,12 @@ const HomePage = ({ user = "Admin" }) => {
           margin: 0;
           font-size: 1.5rem;
           font-weight: 700;
-          background: linear-gradient(135deg, #ff3b30 0%, #dc2626 50%, #991b1b 100%);
+          background: linear-gradient(135deg, #ff2d55 0%, #e11d48 50%, #9f1239 100%);
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
           background-clip: text;
-          text-shadow: 0 0 30px rgba(255, 59, 48, 0.5);
-          filter: drop-shadow(0 0 10px rgba(220, 38, 38, 0.4));
+          text-shadow: 0 0 30px rgba(255, 45, 85, 0.5);
+          filter: drop-shadow(0 0 10px rgba(225, 29, 72, 0.5));
         }
 
         .brand-tag {
@@ -597,7 +597,7 @@ const HomePage = ({ user = "Admin" }) => {
         .stat-value {
           font-size: 1.8rem;
           font-weight: 700;
-          color: #FF3B30;
+          color: #ff2d55;
           margin-bottom: 0.3rem;
         }
 
@@ -802,3 +802,4 @@ const HomePage = ({ user = "Admin" }) => {
 };
 
 export default HomePage;
+

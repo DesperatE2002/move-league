@@ -211,7 +211,7 @@ const ProfilePage = ({ currentUser, onBackClick, viewingUser = null }) => {
   };
 
   const getRatingColor = (rating) => {
-    if (rating >= 1500) return '#dc2626'; // Red for high ratings
+    if (rating >= 1500) return '#e11d48'; // Red for high ratings
     if (rating >= 1300) return '#f59e0b'; // Orange for medium
     return '#6b7280'; // Gray for starting
   };
@@ -309,7 +309,7 @@ const ProfilePage = ({ currentUser, onBackClick, viewingUser = null }) => {
           fontSize: '36px',
           fontWeight: 'bold',
           marginBottom: '10px',
-          background: 'linear-gradient(to right, #dc2626, #991b1b)',
+          background: 'linear-gradient(to right, #e11d48, #9f1239)',
           WebkitBackgroundClip: 'text',
           WebkitTextFillColor: 'transparent',
           backgroundClip: 'text'
@@ -345,7 +345,7 @@ const ProfilePage = ({ currentUser, onBackClick, viewingUser = null }) => {
             borderRadius: '50%',
             background: user.avatar && user.avatar.startsWith('data:image/') 
               ? `url(${user.avatar})` 
-              : 'linear-gradient(135deg, #dc2626 0%, #991b1b 100%)',
+              : 'linear-gradient(135deg, #e11d48 0%, #9f1239 100%)',
             backgroundSize: 'cover',
             backgroundPosition: 'center',
             display: 'flex',
@@ -607,7 +607,7 @@ const ProfilePage = ({ currentUser, onBackClick, viewingUser = null }) => {
                 type="submit"
                 style={{
                   width: '100%',
-                  background: 'linear-gradient(135deg, #dc2626 0%, #991b1b 100%)',
+                  background: 'linear-gradient(135deg, #e11d48 0%, #9f1239 100%)',
                   border: 'none',
                   borderRadius: '6px',
                   padding: '10px',
@@ -717,13 +717,13 @@ const ProfilePage = ({ currentUser, onBackClick, viewingUser = null }) => {
               marginBottom: '20px'
             }}>
               <div style={{
-                background: 'rgba(220,38,38,0.1)',
-                border: '1px solid rgba(220,38,38,0.3)',
+                background: 'rgba(225,29,72,0.12)',
+                border: '1px solid rgba(225,29,72,0.35)',
                 borderRadius: '8px',
                 padding: '15px',
                 textAlign: 'center'
               }}>
-                <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#dc2626' }}>
+                <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#e11d48' }}>
                   {roleStats.totalBattles}
                 </div>
                 <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.6)', marginTop: '5px' }}>
