@@ -78,11 +78,11 @@ const BattleDetail = ({ battleId, onBack }) => {
       PENDING: { text: 'Bekliyor', color: '#FFA500', icon: '⏳' },
       CHALLENGER_ACCEPTED: { text: 'Kabul Edildi', color: '#34C759', icon: '✅' },
       STUDIO_PENDING: { text: 'Stüdyo Bekliyor', color: '#5856D6', icon: '🏢' },
-      STUDIO_REJECTED: { text: 'Stüdyo Reddetti', color: '#ff2d55', icon: '❌' },
+      STUDIO_REJECTED: { text: 'Stüdyo Reddetti', color: '#FF3B30', icon: '❌' },
       CONFIRMED: { text: 'Onaylandı', color: '#34C759', icon: '✅' },
       BATTLE_SCHEDULED: { text: 'Planlandı', color: '#5856D6', icon: '📅' },
-      LIVE: { text: '🔴 CANLI', color: '#ff2d55', icon: '🔴' },
-      REJECTED: { text: 'Reddedildi', color: '#ff2d55', icon: '❌' },
+      LIVE: { text: '🔴 CANLI', color: '#FF3B30', icon: '🔴' },
+      REJECTED: { text: 'Reddedildi', color: '#FF3B30', icon: '❌' },
       COMPLETED: { text: 'Tamamlandı', color: '#8E8E93', icon: '🏁' },
       CANCELLED: { text: 'İptal Edildi', color: '#8E8E93', icon: '🚫' },
     };
@@ -322,7 +322,7 @@ const BattleDetail = ({ battleId, onBack }) => {
               <div className="scores-container">
                 {/* Initiator Scores */}
                 <div className="participant-scores">
-                  <div className="participant-header" style={{ borderColor: '#e11d48' }}>
+                  <div className="participant-header" style={{ borderColor: '#dc2626' }}>
                     <div className="participant-avatar">
                       {battle.initiator.name.charAt(0).toUpperCase()}
                     </div>
@@ -493,8 +493,8 @@ const BattleDetail = ({ battleId, onBack }) => {
 
         .alert-error {
           background: #fecaca;
-          color: #881337;
-          border: 1px solid #ff2d55;
+          color: #991b1b;
+          border: 1px solid #f87171;
         }
 
         .alert-success {
@@ -534,7 +534,7 @@ const BattleDetail = ({ battleId, onBack }) => {
           font-size: 2rem;
           font-weight: 700;
           margin: 0 0 0.5rem 0;
-          color: #e11d48;
+          color: #dc2626;
         }
 
         .battle-category {
@@ -560,7 +560,7 @@ const BattleDetail = ({ battleId, onBack }) => {
         }
 
         .fighter-card.initiator {
-          border-color: #e11d48;
+          border-color: #dc2626;
         }
 
         .fighter-card.challenged {
@@ -583,7 +583,7 @@ const BattleDetail = ({ battleId, onBack }) => {
           display: flex;
           align-items: center;
           justify-content: center;
-          background: linear-gradient(135deg, #e11d48, #ff2d55);
+          background: linear-gradient(135deg, #dc2626, #ef4444);
           font-size: 2.5rem;
           font-weight: 700;
           color: white;
@@ -614,8 +614,8 @@ const BattleDetail = ({ battleId, onBack }) => {
 
         .style-tag {
           padding: 0.25rem 0.75rem;
-          background: rgba(225, 29, 72, 0.25);
-          border: 1px solid #e11d48;
+          background: rgba(220, 38, 38, 0.2);
+          border: 1px solid #dc2626;
           border-radius: 12px;
           font-size: 0.8rem;
           color: #fca5a5;
@@ -630,8 +630,8 @@ const BattleDetail = ({ battleId, onBack }) => {
         .vs-text {
           font-size: 2.5rem;
           font-weight: 900;
-          color: #e11d48;
-          text-shadow: 0 0 20px rgba(225, 29, 72, 0.6);
+          color: #dc2626;
+          text-shadow: 0 0 20px rgba(220, 38, 38, 0.5);
         }
 
         .description-section {
@@ -643,7 +643,7 @@ const BattleDetail = ({ battleId, onBack }) => {
 
         .description-section h3 {
           margin: 0 0 1rem 0;
-          color: #e11d48;
+          color: #dc2626;
         }
 
         .description-section p {
@@ -655,8 +655,8 @@ const BattleDetail = ({ battleId, onBack }) => {
         .actions-section {
           margin: 2rem 0;
           padding: 2rem;
-          background: rgba(225, 29, 72, 0.12);
-          border: 2px solid #e11d48;
+          background: rgba(220, 38, 38, 0.1);
+          border: 2px solid #dc2626;
           border-radius: 12px;
           text-align: center;
         }
@@ -695,13 +695,13 @@ const BattleDetail = ({ battleId, onBack }) => {
         }
 
         .btn-reject {
-          background: linear-gradient(135deg, #ff2d55, #e11d48);
+          background: linear-gradient(135deg, #FF3B30, #dc2626);
           color: white;
         }
 
         .btn-reject:hover:not(:disabled) {
           transform: scale(1.05);
-          box-shadow: 0 10px 30px rgba(225, 29, 72, 0.5);
+          box-shadow: 0 10px 30px rgba(220, 38, 38, 0.4);
         }
 
         .btn-accept:disabled, .btn-reject:disabled {
@@ -891,7 +891,7 @@ const BattleDetail = ({ battleId, onBack }) => {
           width: 80px;
           height: 80px;
           border-radius: 50%;
-          background: linear-gradient(135deg, #e11d48, #ff2d55);
+          background: linear-gradient(135deg, #dc2626, #ef4444);
           display: flex;
           align-items: center;
           justify-content: center;
@@ -974,8 +974,8 @@ const BattleDetail = ({ battleId, onBack }) => {
           justify-content: center;
           font-size: 2rem;
           font-weight: 900;
-          color: #e11d48;
-          text-shadow: 0 0 20px rgba(225, 29, 72, 0.6);
+          color: #dc2626;
+          text-shadow: 0 0 20px rgba(220, 38, 38, 0.5);
         }
 
         .referee-info {
@@ -1124,4 +1124,3 @@ const BattleDetail = ({ battleId, onBack }) => {
 };
 
 export default BattleDetail;
-
