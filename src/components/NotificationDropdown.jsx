@@ -207,7 +207,7 @@ const NotificationDropdown = ({ onBattleClick, onStudioApprovalClick }) => {
           position: absolute;
           top: -5px;
           right: -5px;
-          background: var(--accent-red);
+          background: #e11d48;
           color: white;
           border-radius: 50%;
           width: 24px;
@@ -283,7 +283,7 @@ const NotificationDropdown = ({ onBattleClick, onStudioApprovalClick }) => {
         .mark-all-read {
           padding: 0.5rem 1rem;
           background: rgba(225, 29, 72, 0.25);
-          border: 1px solid var(--accent-red);
+          border: 1px solid #e11d48;
           border-radius: 6px;
           color: #fca5a5;
           font-size: 0.85rem;
@@ -310,7 +310,7 @@ const NotificationDropdown = ({ onBattleClick, onStudioApprovalClick }) => {
         }
 
         .notifications-list::-webkit-scrollbar-thumb {
-          background: var(--accent-red);
+          background: #e11d48;
           border-radius: 4px;
         }
 
@@ -378,7 +378,7 @@ const NotificationDropdown = ({ onBattleClick, onStudioApprovalClick }) => {
           transform: translateY(-50%);
           width: 10px;
           height: 10px;
-          background: var(--accent-red);
+          background: #e11d48;
           border-radius: 50%;
         }
 
@@ -394,3 +394,4 @@ const NotificationDropdown = ({ onBattleClick, onStudioApprovalClick }) => {
 };
 
 export default NotificationDropdown;
+

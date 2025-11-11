@@ -274,8 +274,8 @@ const BattleRequest = ({ onBack }) => {
 
         .alert-error {
           background: #fecaca;
-          color: var(--accent-red-darker);
-          border: 1px solid var(--accent-red-bright);
+          color: #881337;
+          border: 1px solid #ff2d55;
         }
 
         .alert-success {
@@ -302,7 +302,7 @@ const BattleRequest = ({ onBack }) => {
           font-size: 1.5rem;
           font-weight: 600;
           margin-bottom: 1.5rem;
-          color: var(--accent-red);
+          color: #e11d48;
         }
 
         .search-box {
@@ -341,7 +341,7 @@ const BattleRequest = ({ onBack }) => {
         }
 
         .dancers-list::-webkit-scrollbar-thumb {
-          background: var(--accent-red);
+          background: #e11d48;
           border-radius: 4px;
         }
 
@@ -360,13 +360,13 @@ const BattleRequest = ({ onBack }) => {
 
         .dancer-card:hover {
           background: rgba(255, 255, 255, 0.1);
-          border-color: var(--accent-red);
+          border-color: #e11d48;
           transform: translateY(-2px);
         }
 
         .dancer-card.selected {
           background: rgba(225, 29, 72, 0.25);
-          border-color: var(--accent-red);
+          border-color: #e11d48;
           box-shadow: 0 0 20px rgba(225, 29, 72, 0.4);
         }
 
@@ -385,7 +385,7 @@ const BattleRequest = ({ onBack }) => {
           display: flex;
           align-items: center;
           justify-content: center;
-          background: linear-gradient(135deg, var(--accent-red), var(--accent-red-bright));
+          background: linear-gradient(135deg, #e11d48, #ff2d55);
           font-size: 1.5rem;
           font-weight: 700;
           color: white;
@@ -417,7 +417,7 @@ const BattleRequest = ({ onBack }) => {
         .style-tag {
           padding: 0.25rem 0.75rem;
           background: rgba(225, 29, 72, 0.25);
-          border: 1px solid var(--accent-red);
+          border: 1px solid #e11d48;
           border-radius: 12px;
           font-size: 0.8rem;
           color: #fca5a5;
@@ -435,7 +435,7 @@ const BattleRequest = ({ onBack }) => {
           right: 1rem;
           width: 30px;
           height: 30px;
-          background: var(--accent-red);
+          background: #e11d48;
           border-radius: 50%;
           display: flex;
           align-items: center;
@@ -489,7 +489,7 @@ const BattleRequest = ({ onBack }) => {
         .selected-dancer-preview {
           padding: 1rem;
           background: rgba(225, 29, 72, 0.12);
-          border: 1px solid var(--accent-red);
+          border: 1px solid #e11d48;
           border-radius: 8px;
         }
 
@@ -524,7 +524,7 @@ const BattleRequest = ({ onBack }) => {
 
         .submit-btn {
           padding: 1rem 2rem;
-          background: linear-gradient(135deg, var(--accent-red), var(--accent-red-bright));
+          background: linear-gradient(135deg, #e11d48, #ff2d55);
           border: none;
           border-radius: 8px;
           color: white;
@@ -568,3 +568,4 @@ const BattleRequest = ({ onBack }) => {
 };
 
 export default BattleRequest;
+

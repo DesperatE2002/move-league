@@ -269,7 +269,7 @@ const BattlesPage = ({ onBack, onBattleClick }) => {
 
         .create-btn {
           padding: 0.75rem 1.5rem;
-          background: linear-gradient(135deg, var(--accent-red), var(--accent-red-dark));
+          background: linear-gradient(135deg, #e11d48, #9f1239);
           border: none;
           border-radius: 10px;
           color: white;
@@ -313,7 +313,7 @@ const BattlesPage = ({ onBack, onBattleClick }) => {
         }
 
         .tab.active {
-          background: linear-gradient(135deg, var(--accent-red), var(--accent-red-dark));
+          background: linear-gradient(135deg, #e11d48, #9f1239);
           color: white;
           font-weight: 600;
         }
@@ -331,7 +331,7 @@ const BattlesPage = ({ onBack, onBattleClick }) => {
           width: 50px;
           height: 50px;
           border: 4px solid rgba(255, 255, 255, 0.1);
-          border-top-color: var(--accent-red);
+          border-top-color: #e11d48;
           border-radius: 50%;
           animation: spin 1s linear infinite;
           margin: 0 auto 1rem;
@@ -366,7 +366,7 @@ const BattlesPage = ({ onBack, onBattleClick }) => {
 
         .primary-btn {
           padding: 1rem 2rem;
-          background: linear-gradient(135deg, var(--accent-red), var(--accent-red-dark));
+          background: linear-gradient(135deg, #e11d48, #9f1239);
           border: none;
           border-radius: 10px;
           color: white;
@@ -401,7 +401,7 @@ const BattlesPage = ({ onBack, onBattleClick }) => {
         .battle-card:hover {
           transform: translateY(-5px);
           box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-          border-color: var(--accent-red);
+          border-color: #e11d48;
         }
 
         .battle-card::before {
@@ -411,7 +411,7 @@ const BattlesPage = ({ onBack, onBattleClick }) => {
           left: 0;
           right: 0;
           height: 4px;
-          background: linear-gradient(90deg, var(--accent-red), var(--accent-red-dark));
+          background: linear-gradient(90deg, #e11d48, #9f1239);
         }
 
         .status-badge {
@@ -463,7 +463,7 @@ const BattlesPage = ({ onBack, onBattleClick }) => {
           display: flex;
           align-items: center;
           justify-content: center;
-          background: linear-gradient(135deg, var(--accent-red), var(--accent-red-dark));
+          background: linear-gradient(135deg, #e11d48, #9f1239);
           font-size: 1.5rem;
           font-weight: 700;
         }
@@ -476,7 +476,7 @@ const BattlesPage = ({ onBack, onBattleClick }) => {
         .vs {
           font-size: 1.2rem;
           font-weight: 700;
-          color: var(--accent-red);
+          color: #e11d48;
           flex-shrink: 0;
         }
 

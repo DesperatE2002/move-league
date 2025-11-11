@@ -492,7 +492,7 @@ const HomePage = ({ user = "Admin" }) => {
           margin: 0;
           font-size: 1.5rem;
           font-weight: 700;
-          background: linear-gradient(135deg, var(--accent-red-bright) 0%, var(--accent-red) 50%, var(--accent-red-dark) 100%);
+          background: linear-gradient(135deg, #ff2d55 0%, #e11d48 50%, #9f1239 100%);
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
           background-clip: text;
@@ -597,7 +597,7 @@ const HomePage = ({ user = "Admin" }) => {
         .stat-value {
           font-size: 1.8rem;
           font-weight: 700;
-          color: var(--accent-red-bright);
+          color: #ff2d55;
           margin-bottom: 0.3rem;
         }
 
@@ -802,3 +802,4 @@ const HomePage = ({ user = "Admin" }) => {
 };
 
 export default HomePage;
+
