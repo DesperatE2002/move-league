@@ -19,8 +19,7 @@ const BattlesPage = ({ onBack, onBattleClick }) => {
     try {
       setLoading(true);
       const response = await battlesApi.getBattles();
-      // API yeni pagination yapısı ile { battles: [...], pagination: {...} } döndürüyor
-      const battlesData = response.battles || response.data || response || [];
+      const battlesData = response.data || response || [];
       setBattles(battlesData);
     } catch (err) {
       console.error('Battle\'lar yüklenemedi:', err);
@@ -204,7 +203,7 @@ const BattlesPage = ({ onBack, onBattleClick }) => {
                   <div className="battle-info">
                     <div className="info-row">
                       <span className="info-label">🎵 Dans Stili:</span>
-                      <span className="info-value">{battle.category || 'Hip-Hop'}</span>
+                      <span className="info-value">{battle.danceStyle}</span>
                     </div>
                     <div className="info-row">
                       <span className="info-label">📅 Tarih:</span>
