@@ -288,6 +288,19 @@ export async function PATCH(
           return errorResponse('Bu battle stüdyo onayı bekliyor değil', 400);
         }
 
+        // Sadece SEÇİLEN stüdyo onaylayabilir
+        const studio = await prisma.studio.findUnique({
+          where: { userId: currentUser.userId },
+        });
+
+        if (!studio) {
+          return errorResponse('Stüdyo kaydınız bulunamadı', 404);
+        }
+
+        if (battle.selectedStudioId !== studio.id) {
+          return errorResponse('Bu battle sizin stüdyonuz için değil', 403);
+        }
+
         if (!scheduledDate || !scheduledTime || !location) {
           return errorResponse('Tarih, saat ve konum gerekli', 400);
         }
@@ -332,6 +345,19 @@ export async function PATCH(
         // Stüdyo battle'ı reddediyor
         if (currentUser.role !== 'STUDIO') {
           return errorResponse('Sadece stüdyolar reddedebilir', 403);
+        }
+
+        // Sadece SEÇİLEN stüdyo reddedebilir
+        const studio = await prisma.studio.findUnique({
+          where: { userId: currentUser.userId },
+        });
+
+        if (!studio) {
+          return errorResponse('Stüdyo kaydınız bulunamadı', 404);
+        }
+
+        if (battle.selectedStudioId !== studio.id) {
+          return errorResponse('Bu battle sizin stüdyonuz için değil', 403);
         }
 
         await prisma.battleRequest.update({
