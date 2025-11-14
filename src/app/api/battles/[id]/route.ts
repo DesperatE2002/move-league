@@ -195,8 +195,21 @@ export async function PATCH(
           return errorResponse('En az bir stüdyo seçmelisiniz', 400);
         }
 
-        if (battle.status !== 'CHALLENGER_ACCEPTED') {
+        // ✅ STUDIO_REJECTED durumunda da stüdyo seçimi yapılabilsin
+        if (battle.status !== 'CHALLENGER_ACCEPTED' && battle.status !== 'STUDIO_REJECTED') {
           return errorResponse('Bu aşamada stüdyo seçimi yapılamaz', 400);
+        }
+
+        // Eğer STUDIO_REJECTED'dan geliyorsa, status'u düzelt ve eski seçimi temizle
+        if (battle.status === 'STUDIO_REJECTED') {
+          await prisma.battleRequest.update({
+            where: { id: battleId },
+            data: { 
+              status: 'CHALLENGER_ACCEPTED',
+              selectedStudioId: null // Eski stüdyo seçimini temizle
+            },
+          });
+          console.log(`✅ Battle ${battleId} status reset: STUDIO_REJECTED -> CHALLENGER_ACCEPTED`);
         }
 
         // Mevcut tercihleri sil ve yenilerini ekle
@@ -272,10 +285,58 @@ export async function PATCH(
                 },
               });
             }
+
+            return successResponse({ 
+              success: true,
+              initiatorSelected,
+              challengedSelected,
+              matched: true,
+              selectedStudioId,
+            }, 'Ortak stüdyo bulundu ve onay için gönderildi! 🎉');
+          } else {
+            // ❌ ORTAK STÜDYO BULUNAMADI!
+            console.warn(`⚠️ Battle ${battleId}: No matching studio found!`);
+            
+            // Her iki dansçıya bildirim gönder
+            await Promise.all([
+              prisma.notification.create({
+                data: {
+                  userId: battle.initiatorId,
+                  type: 'GENERAL',
+                  title: '⚠️ Ortak Stüdyo Bulunamadı',
+                  message: 'Seçtiğiniz stüdyolar eşleşmedi. Lütfen rakibinizle anlaşarak ortak bir stüdyo seçin.',
+                  battleRequestId: battleId,
+                },
+              }),
+              prisma.notification.create({
+                data: {
+                  userId: battle.challengedId,
+                  type: 'GENERAL',
+                  title: '⚠️ Ortak Stüdyo Bulunamadı',
+                  message: 'Seçtiğiniz stüdyolar eşleşmedi. Lütfen rakibinizle anlaşarak ortak bir stüdyo seçin.',
+                  battleRequestId: battleId,
+                },
+              }),
+            ]);
+
+            return successResponse({
+              success: true,
+              initiatorSelected,
+              challengedSelected,
+              matched: false,
+              selectedStudioId: null,
+            }, 'Stüdyo tercihleri kaydedildi ancak ortak stüdyo bulunamadı. Lütfen tekrar seçim yapın.');
           }
         }
 
-        return successResponse({ success: true }, 'Stüdyo tercihleri kaydedildi');
+        // Sadece bir taraf seçim yaptı
+        const currentUserName = currentUser.userId === battle.initiatorId ? battle.initiator.name : battle.challenged.name;
+        return successResponse({ 
+          success: true,
+          initiatorSelected,
+          challengedSelected,
+          matched: false,
+        }, `Tercihiniz kaydedildi. Karşı tarafın seçimi bekleniyor...`);
       }
 
       case 'STUDIO_APPROVE': {
@@ -607,6 +668,11 @@ export async function PATCH(
           return errorResponse('Bu battle\'a atanmış hakem değilsiniz', 403);
         }
 
+        // ✅ İdempotent check - Battle zaten tamamlanmış mı?
+        if (battle.status === 'COMPLETED') {
+          return errorResponse('Bu battle zaten puanlandı ve tamamlandı. Rating tekrar güncellenemez.', 400);
+        }
+
         const { scores, winnerId } = body;
         if (!scores || !scores.initiator || !scores.challenged) {
           return errorResponse('Puanlar eksik', 400);
@@ -625,89 +691,81 @@ export async function PATCH(
         }
 
         try {
-          // Battle'ı güncelle - puanları ve kazananı kaydet
-          const updatedBattle = await prisma.battleRequest.update({
-            where: { id: battleId },
-            data: {
-              status: 'COMPLETED',
-              winnerId: finalWinnerId,
-              scores: scores, // JSON olarak kaydedilecek
-              completedAt: new Date(),
-            },
-            include: {
-              initiator: { select: { id: true, name: true, email: true } },
-              challenged: { select: { id: true, name: true, email: true } },
-              referee: { select: { id: true, name: true, email: true } },
-            },
+          // ✅ Prisma Transaction kullanarak atomic operation
+          const result = await prisma.$transaction(async (tx) => {
+            // Battle'ı güncelle - puanları ve kazananı kaydet
+            const updatedBattle = await tx.battleRequest.update({
+              where: { id: battleId },
+              data: {
+                status: 'COMPLETED',
+                winnerId: finalWinnerId,
+                scores: scores, // JSON olarak kaydedilecek
+                completedAt: new Date(),
+              },
+              include: {
+                initiator: { select: { id: true, name: true, email: true } },
+                challenged: { select: { id: true, name: true, email: true } },
+                referee: { select: { id: true, name: true, email: true } },
+              },
+            });
+
+            // Rating güncellemeleri - Transaction içinde
+            // Kazanan: +20, Beraberlik: +10, Kaybeden: -10
+            if (finalWinnerId) {
+              // Kazanan var
+              const loserId = finalWinnerId === battle.initiatorId ? battle.challengedId : battle.initiatorId;
+              
+              await tx.user.update({
+                where: { id: finalWinnerId },
+                data: { rating: { increment: 20 } }
+              });
+              
+              await tx.user.update({
+                where: { id: loserId },
+                data: { rating: { decrement: 10 } }
+              });
+            } else {
+              // Beraberlik - Her ikisi de +10
+              await tx.user.update({
+                where: { id: battle.initiatorId },
+                data: { rating: { increment: 10 } }
+              });
+              
+              await tx.user.update({
+                where: { id: battle.challengedId },
+                data: { rating: { increment: 10 } }
+              });
+            }
+
+            // Katılımcılara bildirim gönder
+            const winnerName = finalWinnerId 
+              ? (finalWinnerId === battle.initiatorId ? battle.initiator.name : battle.challenged.name)
+              : 'Berabere';
+
+            await tx.notification.createMany({
+              data: [
+                {
+                  userId: battle.initiatorId,
+                  type: 'GENERAL',
+                  title: 'Battle Tamamlandı',
+                  message: `${battle.initiator.name} vs ${battle.challenged.name} battle'ı puanlandı. Kazanan: ${winnerName}. Rating ${finalWinnerId === battle.initiatorId ? '+20' : finalWinnerId ? '-10' : '+10'}`,
+                  battleRequestId: battleId,
+                },
+                {
+                  userId: battle.challengedId,
+                  type: 'GENERAL',
+                  title: 'Battle Tamamlandı',
+                  message: `${battle.initiator.name} vs ${battle.challenged.name} battle'ı puanlandı. Kazanan: ${winnerName}. Rating ${finalWinnerId === battle.challengedId ? '+20' : finalWinnerId ? '-10' : '+10'}`,
+                  battleRequestId: battleId,
+                },
+              ],
+            });
+
+            return updatedBattle;
           });
 
-          // Katılımcılara bildirim gönder
-          const winnerName = finalWinnerId 
-            ? (finalWinnerId === battle.initiatorId ? battle.initiator.name : battle.challenged.name)
-            : 'Berabere';
-
-          // Rating güncellemeleri
-          // Kazanan: +20, Beraberlik: +10, Kaybeden: -10
-          if (finalWinnerId) {
-            // Kazanan var
-            const loserId = finalWinnerId === battle.initiatorId ? battle.challengedId : battle.initiatorId;
-            
-            await Promise.all([
-              // Kazanan +20
-              prisma.user.update({
-                where: { id: finalWinnerId },
-                data: {
-                  rating: { increment: 20 }
-                }
-              }),
-              // Kaybeden -10
-              prisma.user.update({
-                where: { id: loserId },
-                data: {
-                  rating: { decrement: 10 }
-                }
-              })
-            ]);
-          } else {
-            // Beraberlik - Her ikisi de +10
-            await Promise.all([
-              prisma.user.update({
-                where: { id: battle.initiatorId },
-                data: {
-                  rating: { increment: 10 }
-                }
-              }),
-              prisma.user.update({
-                where: { id: battle.challengedId },
-                data: {
-                  rating: { increment: 10 }
-                }
-              })
-            ]);
-          }
-
-          await Promise.all([
-            prisma.notification.create({
-              data: {
-                userId: battle.initiatorId,
-                type: 'GENERAL',
-                title: 'Battle Tamamlandı',
-                message: `${battle.initiator.name} vs ${battle.challenged.name} battle'ı puanlandı. Kazanan: ${winnerName}. Rating ${finalWinnerId === battle.initiatorId ? '+20' : finalWinnerId ? '-10' : '+10'}`,
-                battleRequestId: battleId,
-              },
-            }),
-            prisma.notification.create({
-              data: {
-                userId: battle.challengedId,
-                type: 'GENERAL',
-                title: 'Battle Tamamlandı',
-                message: `${battle.initiator.name} vs ${battle.challenged.name} battle'ı puanlandı. Kazanan: ${winnerName}. Rating ${finalWinnerId === battle.challengedId ? '+20' : finalWinnerId ? '-10' : '+10'}`,
-                battleRequestId: battleId,
-              },
-            }),
-          ]);
-
-          return successResponse(updatedBattle, 'Puanlama başarıyla kaydedildi');
+          console.log(`✅ Battle ${battleId} completed and ratings updated in transaction`);
+          return successResponse(result, 'Puanlama başarıyla kaydedildi');
         } catch (scoreError: any) {
           console.error('❌ SUBMIT_SCORES error:', scoreError);
           return errorResponse('Puanlama kaydedilemedi: ' + scoreError.message, 500, scoreError);

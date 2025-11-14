@@ -85,18 +85,23 @@ export async function GET(request: NextRequest) {
       where.status = status;
     }
 
+    // ✅ Performance optimization: includeDetails parametresi
+    const includeDetails = searchParams.get('includeDetails') === 'true';
+
     // Toplam sayı
     const total = await prisma.battleRequest.count({ where });
 
     const battles = await prisma.battleRequest.findMany({
       where,
-      include: {
+      include: includeDetails ? {
+        // 🔍 Detaylı include (battle detail sayfası için)
         initiator: {
           select: {
             id: true,
             name: true,
             email: true,
             avatar: true,
+            rating: true,
             danceStyles: true,
             bio: true,
           },
@@ -107,6 +112,7 @@ export async function GET(request: NextRequest) {
             name: true,
             email: true,
             avatar: true,
+            rating: true,
             danceStyles: true,
             bio: true,
           },
@@ -117,6 +123,8 @@ export async function GET(request: NextRequest) {
             name: true,
             address: true,
             city: true,
+            capacity: true,
+            pricePerHour: true,
           },
         },
         referee: {
@@ -124,6 +132,44 @@ export async function GET(request: NextRequest) {
             id: true,
             name: true,
             email: true,
+          },
+        },
+        studioPreferences: {
+          include: {
+            studio: {
+              select: {
+                id: true,
+                name: true,
+                address: true,
+                city: true,
+              },
+            },
+          },
+          orderBy: {
+            priority: 'asc',
+          },
+        },
+      } : {
+        // 📋 Basit include (liste görünümü için)
+        initiator: {
+          select: {
+            id: true,
+            name: true,
+            avatar: true,
+          },
+        },
+        challenged: {
+          select: {
+            id: true,
+            name: true,
+            avatar: true,
+          },
+        },
+        selectedStudio: {
+          select: {
+            id: true,
+            name: true,
+            city: true,
           },
         },
       },
@@ -243,7 +289,7 @@ export async function POST(request: NextRequest) {
     return successResponse(battle, 'Battle talebi gönderildi', 201);
   } catch (error) {
     console.error('Create battle error:', error);
-    console.error('Error details:', JSON.stringify(error, null, 2));
-    return errorResponse('Battle talebi oluşturulamadı: ' + (error.message || 'Bilinmeyen hata'), 500, error);
+    const errorMessage = error instanceof Error ? error.message : 'Bilinmeyen hata';
+    return errorResponse('Battle talebi oluşturulamadı: ' + errorMessage, 500);
   }
 }
