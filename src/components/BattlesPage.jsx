@@ -19,7 +19,9 @@ const BattlesPage = ({ onBack, onBattleClick }) => {
     try {
       setLoading(true);
       const response = await battlesApi.getBattles();
-      const battlesData = response.data || response || [];
+      // API yeni yapı: { success: true, data: { battles: [...], pagination: {...} } }
+      const battlesData = response?.data?.battles || response?.battles || response?.data || [];
+      console.log('Battles loaded:', battlesData.length);
       setBattles(battlesData);
     } catch (err) {
       console.error('Battle\'lar yüklenemedi:', err);

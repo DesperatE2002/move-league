@@ -74,7 +74,7 @@ const AdminPanel = ({ onBack, onViewUserProfile }) => {
         }
       } else if (activeTab === "battles") {
         const battlesResponse = await battlesApi.getBattles();
-        const battlesData = battlesResponse.data || battlesResponse || [];
+        const battlesData = battlesResponse?.data?.battles || battlesResponse?.battles || battlesResponse?.data || [];
         setBattles(battlesData);
 
         const usersResponse = await fetch("/api/users?role=REFEREE", {

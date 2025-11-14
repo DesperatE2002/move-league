@@ -24,12 +24,10 @@ const StudioBattleApproval = ({ battleId, onBack }) => {
     try {
       setLoading(true);
       console.log('🏢 Loading battle:', battleId);
-      const response = await battlesApi.getBattles(); // Tüm battle'ları çek
-      const battlesData = response.data || response || [];
-      console.log('📊 All battles:', battlesData);
-      const foundBattle = battlesData.find(b => b.id === battleId);
-      console.log('✅ Found battle:', foundBattle);
-      setBattle(foundBattle);
+      const response = await battlesApi.getBattle(battleId);
+      const battleData = response?.data || response;
+      console.log('✅ Battle loaded:', battleData);
+      setBattle(battleData);
       
       // Stüdyo bilgilerini otomatik doldur
       if (currentUser?.address) {
@@ -37,7 +35,7 @@ const StudioBattleApproval = ({ battleId, onBack }) => {
       }
     } catch (err) {
       console.error('❌ Battle load error:', err);
-      setError('Battle bilgileri yüklenemedi: ' + err.message);
+      setError('Battle bilgileri yüklenemedi: ' + (err.message || 'Bilinmeyen hata'));
     } finally {
       setLoading(false);
     }

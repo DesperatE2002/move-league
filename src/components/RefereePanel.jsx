@@ -91,7 +91,7 @@ const RefereePanel = ({ onBack }) => {
       console.log('🔍 User ID:', currentUser?.id);
       
       const response = await battlesApi.getBattles();
-      const battlesData = response.data || response || [];
+      const battlesData = response?.data?.battles || response?.battles || response?.data || [];
       console.log('📦 All battles:', battlesData);
       
       // Sadece hakeme atanan battle'ları filtrele
@@ -106,7 +106,7 @@ const RefereePanel = ({ onBack }) => {
       console.log('📋 Filtrelenmiş battles:', myBattles);
     } catch (err) {
       console.error('❌ Battle yükleme hatası:', err);
-      alert('Battle\'lar yüklenemedi: ' + err.message);
+      alert('Battle\'lar yüklenemedi: ' + (err.message || 'Bilinmeyen hata'));
     } finally {
       setLoading(false);
     }
