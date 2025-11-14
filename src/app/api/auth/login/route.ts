@@ -41,6 +41,32 @@ export async function POST(request: NextRequest) {
       return errorResponse('Hatalı şifre', 401);
     }
 
+    // STUDIO rolüne sahipse ve Studio kaydı yoksa oluştur
+    if (user.role === 'STUDIO') {
+      const existingStudio = await prisma.studio.findUnique({
+        where: { userId: user.id },
+      });
+
+      if (!existingStudio) {
+        console.log(`🏢 Creating Studio record for user: ${user.name} (${user.id})`);
+        await prisma.studio.create({
+          data: {
+            userId: user.id,
+            name: user.studioName || user.name || 'Stüdyo',
+            address: 'Lütfen adresinizi güncelleyin',
+            city: 'Şehir belirtiniz',
+            capacity: 20,
+            pricePerHour: 0,
+            facilities: [],
+            photos: [],
+            description: 'Lütfen stüdyo bilgilerinizi güncelleyin',
+            isActive: true,
+          },
+        });
+        console.log(`✅ Studio record created for ${user.name}`);
+      }
+    }
+
     // Token oluştur
     const token = generateSessionToken(user.id, user.email, user.role);
 

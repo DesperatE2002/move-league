@@ -22,6 +22,12 @@ const BattlesPage = ({ onBack, onBattleClick }) => {
       // API yeni yapı: { success: true, data: { battles: [...], pagination: {...} } }
       const battlesData = response?.data?.battles || response?.battles || response?.data || [];
       console.log('Battles loaded:', battlesData.length);
+      
+      // Stüdyo kullanıcısı için uyarı mesajı kontrol et
+      if (currentUser?.role === 'STUDIO' && battlesData.length === 0 && response?.message?.includes('Stüdyo kaydınız')) {
+        alert('⚠️ ' + response.message);
+      }
+      
       setBattles(battlesData);
     } catch (err) {
       console.error('Battle\'lar yüklenemedi:', err);

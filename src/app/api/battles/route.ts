@@ -51,7 +51,21 @@ export async function GET(request: NextRequest) {
       });
 
       if (!studio) {
-        return errorResponse('Stüdyo kaydı bulunamadı', 404);
+        // Stüdyo kaydı yoksa boş liste döndür ve uyar
+        console.warn(`⚠️ STUDIO role user ${currentUser.userId} has no Studio record!`);
+        return successResponse(
+          {
+            battles: [],
+            pagination: {
+              page: 1,
+              limit: take,
+              total: 0,
+              totalPages: 0,
+              hasMore: false,
+            }
+          },
+          'Stüdyo kaydınız bulunamadı. Lütfen stüdyo bilgilerinizi tamamlayın.'
+        );
       }
 
       where = {
