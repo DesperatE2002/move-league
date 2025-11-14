@@ -91,7 +91,7 @@ const RefereePanel = ({ onBack }) => {
       console.log('🔍 User ID:', currentUser?.id);
       
       const response = await battlesApi.getBattles();
-      const battlesData = response.data || response || [];
+      const battlesData = response.battles || response.data || [];
       console.log('📦 All battles:', battlesData);
       
       // Sadece hakeme atanan battle'ları filtrele

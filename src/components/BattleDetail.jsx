@@ -19,11 +19,10 @@ const BattleDetail = ({ battleId, onBack }) => {
   const loadBattleDetail = async () => {
     try {
       setLoading(true);
-      const response = await battlesApi.getBattles({ battleId });
-      // API'den gelen liste içinden battle'ı bul
-      const battlesData = response.data || response || [];
-      const foundBattle = battlesData.find(b => b.id === battleId);
-      setBattle(foundBattle);
+      const response = await battlesApi.getBattle(battleId);
+      // API'den direkt battle objesi gelir
+      const battleData = response.data || response;
+      setBattle(battleData);
     } catch (err) {
       setError('Battle bilgileri yüklenemedi: ' + err.message);
     } finally {

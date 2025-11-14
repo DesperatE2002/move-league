@@ -24,12 +24,10 @@ const StudioBattleApproval = ({ battleId, onBack }) => {
     try {
       setLoading(true);
       console.log('🏢 Loading battle:', battleId);
-      const response = await battlesApi.getBattles(); // Tüm battle'ları çek
-      const battlesData = response.data || response || [];
-      console.log('📊 All battles:', battlesData);
-      const foundBattle = battlesData.find(b => b.id === battleId);
-      console.log('✅ Found battle:', foundBattle);
-      setBattle(foundBattle);
+      const response = await battlesApi.getBattle(battleId);
+      const battleData = response.data || response;
+      console.log('✅ Found battle:', battleData);
+      setBattle(battleData);
       
       // Stüdyo bilgilerini otomatik doldur
       if (currentUser?.address) {
@@ -171,7 +169,7 @@ const StudioBattleApproval = ({ battleId, onBack }) => {
           <div className="info-grid">
             <div className="info-item">
               <span className="label">🎵 Dans Stili:</span>
-              <span className="value">{battle.danceStyle}</span>
+              <span className="value">{battle.category || 'Hip-Hop'}</span>
             </div>
             <div className="info-item">
               <span className="label">👤 Dansçı 1:</span>
