@@ -60,21 +60,21 @@ const HomePage = ({ user = "Admin" }) => {
 
       const [battlesRes, usersRes, workshopsRes, competitionsRes] = await Promise.all([
         fetch('/api/battles', { headers }).then(r => r.json()).catch(() => ({ data: { battles: [] } })),
-        fetch('/api/users', { headers }).then(r => r.json()).catch(() => ({ data: [] })),
+        fetch('/api/users', { headers }).then(r => r.json()).catch(() => ({ data: { users: [] } })),
         fetch('/api/workshops', { headers }).then(r => r.json()).catch(() => ({ data: [] })),
         fetch('/api/competitions', { headers }).then(r => r.json()).catch(() => ({ data: [] }))
       ]);
 
       console.log('📊 Stats loaded:', {
         battles: battlesRes.data?.battles?.length || battlesRes.data?.length,
-        users: usersRes.data?.length,
+        users: usersRes.data?.users?.length || usersRes.data?.length,
         workshops: workshopsRes.data?.length,
         competitions: competitionsRes.data?.length
       });
 
       setStats({
         battles: battlesRes.data?.battles?.length || battlesRes.data?.length || 0,
-        users: usersRes.data?.length || 0,
+        users: usersRes.data?.users?.length || usersRes.data?.length || 0,
         workshops: workshopsRes.data?.length || 0,
         competitions: competitionsRes.data?.length || 0
       });

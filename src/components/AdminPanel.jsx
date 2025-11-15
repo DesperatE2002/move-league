@@ -86,7 +86,8 @@ const AdminPanel = ({ onBack, onViewUserProfile }) => {
         
         if (usersResponse.ok) {
           const data = await usersResponse.json();
-          const refereesData = data.data || data || [];
+          // ✅ API pagination yapısına göre users array'ini al
+          const refereesData = data.data?.users || data.users || data.data || data || [];
           setReferees(refereesData);
         }
       } else if (activeTab === "users") {

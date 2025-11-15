@@ -78,7 +78,8 @@ const ProfilePage = ({ currentUser, onBackClick, viewingUser = null }) => {
       if (user?.role === 'REFEREE' || user?.role === 'STUDIO') {
         const battlesRes = await fetch('/api/battles', { headers });
         const battlesData = await battlesRes.json();
-        const battles = battlesData.data || battlesData || [];
+        // ✅ API pagination yapısına göre battles array'ini al
+        const battles = battlesData.data?.battles || battlesData.battles || battlesData.data || battlesData || [];
 
         const total = battles.length;
         const completed = battles.filter(b => b.status === 'COMPLETED').length;

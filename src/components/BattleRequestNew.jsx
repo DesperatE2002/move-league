@@ -24,9 +24,12 @@ const BattleRequest = ({ onBack }) => {
     try {
       setLoading(true);
       const response = await usersApi.getUsers({ role: 'DANCER' });
-      const dancersData = response.data || response || [];
+      // ✅ API pagination yapısına göre users array'ini al
+      const dancersData = response.data?.users || response.users || response.data || response || [];
+      console.log('✅ BattleRequestNew: Loaded dancers:', dancersData.length);
       setDancers(dancersData);
     } catch (err) {
+      console.error('❌ BattleRequestNew: Error loading dancers:', err);
       setError('Dansçılar yüklenemedi: ' + err.message);
     } finally {
       setLoading(false);
@@ -274,8 +277,8 @@ const BattleRequest = ({ onBack }) => {
 
         .alert-error {
           background: #fecaca;
-          color: #881337;
-          border: 1px solid #ff2d55;
+          color: #991b1b;
+          border: 1px solid #f87171;
         }
 
         .alert-success {
@@ -302,7 +305,7 @@ const BattleRequest = ({ onBack }) => {
           font-size: 1.5rem;
           font-weight: 600;
           margin-bottom: 1.5rem;
-          color: #e11d48;
+          color: #dc2626;
         }
 
         .search-box {
@@ -341,7 +344,7 @@ const BattleRequest = ({ onBack }) => {
         }
 
         .dancers-list::-webkit-scrollbar-thumb {
-          background: #e11d48;
+          background: #dc2626;
           border-radius: 4px;
         }
 
@@ -360,14 +363,14 @@ const BattleRequest = ({ onBack }) => {
 
         .dancer-card:hover {
           background: rgba(255, 255, 255, 0.1);
-          border-color: #e11d48;
+          border-color: #dc2626;
           transform: translateY(-2px);
         }
 
         .dancer-card.selected {
-          background: rgba(225, 29, 72, 0.25);
-          border-color: #e11d48;
-          box-shadow: 0 0 20px rgba(225, 29, 72, 0.4);
+          background: rgba(220, 38, 38, 0.2);
+          border-color: #dc2626;
+          box-shadow: 0 0 20px rgba(220, 38, 38, 0.3);
         }
 
         .dancer-avatar {
@@ -385,7 +388,7 @@ const BattleRequest = ({ onBack }) => {
           display: flex;
           align-items: center;
           justify-content: center;
-          background: linear-gradient(135deg, #e11d48, #ff2d55);
+          background: linear-gradient(135deg, #dc2626, #ef4444);
           font-size: 1.5rem;
           font-weight: 700;
           color: white;
@@ -416,8 +419,8 @@ const BattleRequest = ({ onBack }) => {
 
         .style-tag {
           padding: 0.25rem 0.75rem;
-          background: rgba(225, 29, 72, 0.25);
-          border: 1px solid #e11d48;
+          background: rgba(220, 38, 38, 0.2);
+          border: 1px solid #dc2626;
           border-radius: 12px;
           font-size: 0.8rem;
           color: #fca5a5;
@@ -435,7 +438,7 @@ const BattleRequest = ({ onBack }) => {
           right: 1rem;
           width: 30px;
           height: 30px;
-          background: #e11d48;
+          background: #dc2626;
           border-radius: 50%;
           display: flex;
           align-items: center;
@@ -488,8 +491,8 @@ const BattleRequest = ({ onBack }) => {
 
         .selected-dancer-preview {
           padding: 1rem;
-          background: rgba(225, 29, 72, 0.12);
-          border: 1px solid #e11d48;
+          background: rgba(220, 38, 38, 0.1);
+          border: 1px solid #dc2626;
           border-radius: 8px;
         }
 
@@ -524,7 +527,7 @@ const BattleRequest = ({ onBack }) => {
 
         .submit-btn {
           padding: 1rem 2rem;
-          background: linear-gradient(135deg, #e11d48, #ff2d55);
+          background: linear-gradient(135deg, #dc2626, #ef4444);
           border: none;
           border-radius: 8px;
           color: white;
@@ -568,4 +571,3 @@ const BattleRequest = ({ onBack }) => {
 };
 
 export default BattleRequest;
-
