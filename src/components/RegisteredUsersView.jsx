@@ -270,6 +270,12 @@ const RegisteredUsersView = ({ onBackClick }) => {
         ) : (
           filteredUsers.map(user => {
             const roleConfig = getRoleConfig(user.role);
+            
+            // ✅ Kullanıcının kayıt tarihini kontrol et
+            const userCreatedAt = new Date(user.createdAt);
+            const oneWeekAgo = new Date();
+            oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+            const isExpired = userCreatedAt < oneWeekAgo;
 
             return (
               <div
@@ -345,6 +351,23 @@ const RegisteredUsersView = ({ onBackClick }) => {
                 }}>
                   📧 {user.email}
                 </div>
+
+                {/* ✅ Tarihi Geçti İbaresi */}
+                {isExpired && (
+                  <div style={{
+                    background: 'rgba(239, 68, 68, 0.2)',
+                    border: '1px solid rgba(239, 68, 68, 0.4)',
+                    borderRadius: '8px',
+                    padding: '8px 12px',
+                    marginBottom: '15px',
+                    fontSize: '12px',
+                    color: '#fca5a5',
+                    fontWeight: '600',
+                    textAlign: 'center'
+                  }}>
+                    ⚠️ Tarihi Geçti (1 haftadan eski)
+                  </div>
+                )}
 
                 {/* Dance Styles */}
                 {user.danceStyles && user.danceStyles.length > 0 && (

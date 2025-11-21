@@ -45,6 +45,11 @@ export async function GET(request: NextRequest) {
       };
     }
 
+    // ✅ Sadece son 1 hafta içinde oluşturulan kullanıcıları göster
+    const oneWeekAgo = new Date();
+    oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+    where.createdAt = { gte: oneWeekAgo };
+
     // Toplam sayıyı al (pagination için)
     const total = await prisma.user.count({ where });
 

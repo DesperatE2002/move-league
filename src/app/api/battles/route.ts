@@ -33,11 +33,25 @@ export async function GET(request: NextRequest) {
       if (status) {
         where.status = status;
       }
+      // ✅ Günü geçmiş battle'ları otomatik filtrele (COMPLETED hariç tutulsun)
+      if (!status || status !== 'COMPLETED') {
+        where.OR = [
+          { scheduledDate: null }, // Henüz tarih belirlenmemiş
+          { scheduledDate: { gte: new Date(new Date().setHours(0, 0, 0, 0)) } }, // Bugün veya sonrası
+          { status: 'COMPLETED' } // Tamamlanmış battle'lar gösterilsin
+        ];
+      }
     }
     // Hakem ise, hakem olarak atandığı battle'ları göster
     else if (currentUser.role === 'REFEREE') {
       where = {
         refereeId: currentUser.userId,
+        // ✅ Günü geçmiş battle'ları otomatik filtrele
+        OR: [
+          { scheduledDate: null },
+          { scheduledDate: { gte: new Date(new Date().setHours(0, 0, 0, 0)) } },
+          { status: 'COMPLETED' }
+        ]
       };
       if (status) {
         where.status = status;
@@ -70,14 +84,32 @@ export async function GET(request: NextRequest) {
 
       where = {
         selectedStudioId: studio.id,
+        // ✅ Günü geçmiş battle'ları otomatik filtrele
+        OR: [
+          { scheduledDate: null },
+          { scheduledDate: { gte: new Date(new Date().setHours(0, 0, 0, 0)) } },
+          { status: 'COMPLETED' }
+        ]
       };
     } else {
       // Dansçı/diğerleri için: Kullanıcının dahil olduğu battle'lar
       where = {
-        OR: [
-          { initiatorId: userId },
-          { challengedId: userId },
-        ],
+        AND: [
+          {
+            OR: [
+              { initiatorId: userId },
+              { challengedId: userId },
+            ],
+          },
+          // ✅ Günü geçmiş battle'ları otomatik filtrele
+          {
+            OR: [
+              { scheduledDate: null },
+              { scheduledDate: { gte: new Date(new Date().setHours(0, 0, 0, 0)) } },
+              { status: 'COMPLETED' }
+            ]
+          }
+        ]
       };
     }
 

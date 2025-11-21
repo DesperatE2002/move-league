@@ -36,6 +36,33 @@ export async function GET(request: NextRequest) {
       where.isCancelled = false;
     }
 
+    // ✅ Tarihi 1 hafta geçmiş workshop'ları otomatik sil
+    const oneWeekAgo = new Date();
+    oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+    
+    const deletedCount = await prisma.workshop.deleteMany({
+      where: {
+        scheduledDate: {
+          lt: oneWeekAgo // Workshop tarihinden 1 hafta geçmiş olanlar
+        }
+      }
+    });
+    
+    if (deletedCount.count > 0) {
+      console.log(`✅ ${deletedCount.count} eski workshop otomatik silindi (1 hafta+ geçmiş)`);
+    }
+
+    // ✅ Eğitmen kontrolü: Kendi workshop'larını görebilsin (geçmiş + gelecek)
+    const user = await prisma.user.findUnique({ where: { id: decoded.userId } });
+    
+    if (user?.role === 'INSTRUCTOR') {
+      // Eğitmen kendi oluşturduğu TÜM workshop'ları görsün
+      where.instructorId = decoded.userId;
+    } else {
+      // Diğer kullanıcılar sadece gelecekteki workshop'ları görsün
+      where.scheduledDate = { gte: new Date(new Date().setHours(0, 0, 0, 0)) };
+    }
+
     const workshops = await prisma.workshop.findMany({
       where,
       include: {
