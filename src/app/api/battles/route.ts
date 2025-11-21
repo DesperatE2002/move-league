@@ -215,6 +215,13 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { challengedId, danceStyle, description } = body;
 
+    console.log('🎯 Battle talebi alındı:', {
+      initiatorId: currentUser.userId,
+      challengedId,
+      danceStyle,
+      description: description?.substring(0, 50) || '(yok)'
+    });
+
     // Validasyon
     if (!challengedId) {
       return errorResponse('Rakip seçmeniz gerekiyor', 400);
@@ -244,7 +251,7 @@ export async function POST(request: NextRequest) {
         initiatorId: currentUser.userId,
         challengedId,
         title: `${initiator?.name || currentUser.email} vs ${challenged.name}`,
-        category: danceStyle || 'Hip-Hop',
+        category: danceStyle || 'HİPHOP', // ✅ Fallback değer tutarlı
         description: description || '',
         status: 'PENDING',
         initiatorNoShow: false,
@@ -278,13 +285,13 @@ export async function POST(request: NextRequest) {
         userId: challengedId,
         type: 'BATTLE_REQUEST',
         title: '⚔️ Yeni Battle Talebi!',
-        message: `${initiator?.name} sana bir battle talebi gönderdi! Dans stili: ${danceStyle || 'Hip-Hop'}`,
+        message: `${initiator?.name} sana bir battle talebi gönderdi! Dans stili: ${danceStyle || 'HİPHOP'}`,
         battleRequestId: battle.id,
         isRead: false,
       },
     });
 
-    console.log(`✅ Battle created: ${battle.id}, Notification sent to: ${challenged.name} (${challengedId}), From: ${initiator?.name}`);
+    console.log(`✅ Battle created: ${battle.id}, Category: ${battle.category}, Notification sent to: ${challenged.name} (${challengedId}), From: ${initiator?.name}`);
 
     return successResponse(battle, 'Battle talebi gönderildi', 201);
   } catch (error) {

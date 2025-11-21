@@ -12,7 +12,7 @@ const BattleRequest = ({ onBack }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedDancer, setSelectedDancer] = useState(null);
   const [formData, setFormData] = useState({
-    danceStyle: 'Hip-Hop',
+    danceStyle: 'SALSA', // ✅ Liste ile tutarlı ilk değer
     description: '',
   });
 
@@ -49,17 +49,25 @@ const BattleRequest = ({ onBack }) => {
     setSuccess('');
 
     try {
+      console.log('🎯 Battle talebi gönderiliyor:', {
+        challengedId: selectedDancer.id,
+        challengedName: selectedDancer.name,
+        danceStyle: formData.danceStyle,
+        description: formData.description
+      });
+      
       const response = await battlesApi.createBattle({
         challengedId: selectedDancer.id,
         danceStyle: formData.danceStyle,
         description: formData.description,
       });
 
+      console.log('✅ Battle talebi başarıyla oluşturuldu:', response.data);
       setSuccess(`Battle talebi ${selectedDancer.name} adlı dansçıya gönderildi! 🎉`);
       
       // Form'u resetle
       setSelectedDancer(null);
-      setFormData({ danceStyle: 'Hip-Hop', description: '' });
+      setFormData({ danceStyle: 'SALSA', description: '' }); // ✅ Liste ile tutarlı reset
       
       // 2 saniye sonra geri dön
       setTimeout(() => {
