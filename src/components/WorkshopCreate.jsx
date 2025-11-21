@@ -276,6 +276,14 @@ const WorkshopCreate = ({ onBack, onSuccess }) => {
                 step="0.01"
                 required
               />
+              <small style={{ color: '#fbbf24', marginTop: '0.5rem', display: 'block', fontWeight: '500' }}>
+                ⚠️ Not: Her katılımcıdan %15 komisyon alınacaktır.
+              </small>
+              {formData.price > 0 && (
+                <small style={{ color: '#34C759', marginTop: '0.3rem', display: 'block' }}>
+                  Komisyon sonrası kazancınız: ₺{(formData.price * 0.85).toFixed(2)} / kişi
+                </small>
+              )}
             </div>
           </div>
 

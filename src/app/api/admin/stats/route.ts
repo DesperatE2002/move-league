@@ -48,6 +48,7 @@ export async function GET(request: NextRequest) {
       totalUsers,
       totalBattles,
       totalWorkshops,
+      totalWorkshopEnrollments,
       totalCompetitions,
       totalStudios,
       activeBattles,
@@ -57,6 +58,7 @@ export async function GET(request: NextRequest) {
       prisma.user.count(),
       prisma.battleRequest.count(),
       prisma.workshop.count(),
+      prisma.workshopEnrollment.count(),
       prisma.competition.count(),
       prisma.studio.count(),
       prisma.battleRequest.count({
@@ -312,6 +314,16 @@ export async function GET(request: NextRequest) {
       revenue: {
         total: totalRevenue._sum.paidAmount || 0,
         inPeriod: revenueInPeriod._sum.paidAmount || 0,
+        // ✅ %15 komisyon hesaplaması
+        commission: {
+          rate: 15, // %15 komisyon
+          total: ((totalRevenue._sum.paidAmount || 0) * 0.15).toFixed(2),
+          inPeriod: ((revenueInPeriod._sum.paidAmount || 0) * 0.15).toFixed(2),
+        },
+        instructor: {
+          total: ((totalRevenue._sum.paidAmount || 0) * 0.85).toFixed(2),
+          inPeriod: ((revenueInPeriod._sum.paidAmount || 0) * 0.85).toFixed(2),
+        }
       },
       trends: {
         dailyBattles,

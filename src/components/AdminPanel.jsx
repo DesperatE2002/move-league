@@ -601,11 +601,23 @@ const AdminPanel = ({ onBack, onViewUserProfile }) => {
               <div className="stat-card-large stat-warning">
                 <div className="stat-icon-large">💰</div>
                 <div className="stat-content-large">
-                  <div className="stat-value-large">₺{stats.revenue.total.toLocaleString()}</div>
-                  <div className="stat-label-large">Toplam Gelir</div>
-                  {stats.revenue.inPeriod > 0 && (
-                    <div className="stat-change positive">+₺{stats.revenue.inPeriod.toLocaleString()}</div>
+                  <div className="stat-value-large">₺{stats.revenue?.commission?.total || 0}</div>
+                  <div className="stat-label-large">Site Kazancı (15% Komisyon)</div>
+                  {stats.revenue?.commission?.inPeriod > 0 && (
+                    <div className="stat-change positive">+₺{stats.revenue.commission.inPeriod}</div>
                   )}
+                  <div style={{ 
+                    marginTop: '8px', 
+                    fontSize: '11px', 
+                    color: 'rgba(255,255,255,0.6)',
+                    background: 'rgba(0,0,0,0.2)',
+                    padding: '6px 10px',
+                    borderRadius: '6px'
+                  }}>
+                    📊 Toplam Gelir: ₺{stats.revenue.total.toLocaleString()}
+                    <br />
+                    👨‍🏫 Eğitmen Payı: ₺{stats.revenue?.instructor?.total || 0}
+                  </div>
                 </div>
               </div>
             </div>
