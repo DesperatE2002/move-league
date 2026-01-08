@@ -7,9 +7,6 @@ import ProfileCompletionPage from '../components/ProfileCompletionPage';
 import PendingApprovalPage from '../components/PendingApprovalPage';
 import HomePage from '../components/HomePage';
 
-// Force dynamic rendering
-export const dynamic = 'force-dynamic';
-
 export default function Home() {
   const { user: clerkUser, isLoaded } = useUser();
   const [appUser, setAppUser] = useState(null);
