@@ -1,5 +1,6 @@
 import { clerkMiddleware } from '@clerk/nextjs/server'
 
+// Tüm route'ları public yap - JWT sistemi devam etsin
 export default clerkMiddleware()
 
 export const config = {

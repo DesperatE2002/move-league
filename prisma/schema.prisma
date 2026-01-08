@@ -83,6 +83,13 @@ model User {
   bio           String?
   gender        Gender?  // Cinsiyet
   
+  // OAuth & Profile Completion
+  clerkId       String?  @unique // Clerk user ID (Google OAuth için)
+  isProfileComplete Boolean @default(false) // Profil dolduruldu mu?
+  isApproved    Boolean  @default(true) // Admin onayı (INSTRUCTOR/REFEREE için false başlar)
+  approvedAt    DateTime? // Onay tarihi
+  approvedBy    String?   // Onaylayan admin ID
+  
   // Dansçı özel alanları
   danceStyles   String[] // ["hiphop", "breaking", etc.]
   experience    Int?     // Yıl olarak

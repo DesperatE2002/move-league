@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState } from 'react';
-import { useSignIn } from '@clerk/nextjs';
 import { authApi } from '@/lib/api-client';
 import ForgotPasswordPage from './ForgotPasswordPage';
 
@@ -11,7 +10,6 @@ import ForgotPasswordPage from './ForgotPasswordPage';
  */
 
 const LoginPage = ({ onLogin, onSignupClick }) => {
-  const { signIn, isLoaded } = useSignIn();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -41,20 +39,7 @@ const LoginPage = ({ onLogin, onSignupClick }) => {
   };
 
   const handleGoogleLogin = async () => {
-    if (!isLoaded) return;
-    
-    try {
-      setLoading(true);
-      await signIn.authenticateWithRedirect({
-        strategy: 'oauth_google',
-        redirectUrl: '/sso-callback',
-        redirectUrlComplete: '/',
-      });
-    } catch (err) {
-      console.error('Google login error:', err);
-      setError('Google ile giriş sırasında bir hata oluştu.');
-      setLoading(false);
-    }
+    alert('🚧 Google ile giriş özelliği yakında eklenecek!');
   };
 
   // Eğer "Şifremi Unuttum" sayfası gösterilecekse
