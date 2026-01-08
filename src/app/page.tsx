@@ -1,40 +1,55 @@
 'use client';
 
-import { useState } from 'react';
-import LoginPage from '../components/LoginPage';
-import SignupPage from '../components/SignupPage';
+import { useUser, SignedIn, SignedOut } from '@clerk/nextjs';
+import ClerkLoginPage from '../components/ClerkLoginPage';
 import HomePage from '../components/HomePage';
 
 export default function Home() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [showSignup, setShowSignup] = useState(false);
-  const [userEmail, setUserEmail] = useState('');
+  const { user, isLoaded } = useUser();
 
-  const handleLogin = (email: string) => {
-    setUserEmail(email);
-    setIsLoggedIn(true);
-  };
-
-  const handleSignup = (email: string) => {
-    setUserEmail(email);
-    setIsLoggedIn(true);
-  };
-
-  const handleShowSignup = () => {
-    setShowSignup(true);
-  };
-
-  const handleBackToLogin = () => {
-    setShowSignup(false);
-  };
-
-  if (isLoggedIn) {
-    return <HomePage user={userEmail.split('@')[0]} />;
+  // Loading state
+  if (!isLoaded) {
+    return (
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        minHeight: '100vh',
+        background: '#000',
+        color: '#fff'
+      }}>
+        <div style={{
+          textAlign: 'center'
+        }}>
+          <div style={{
+            width: '50px',
+            height: '50px',
+            border: '3px solid rgba(255,59,48,0.3)',
+            borderTop: '3px solid #FF3B30',
+            borderRadius: '50%',
+            animation: 'spin 1s linear infinite',
+            margin: '0 auto 20px'
+          }} />
+          <p>Yükleniyor...</p>
+        </div>
+        <style>{`
+          @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+          }
+        `}</style>
+      </div>
+    );
   }
 
-  if (showSignup) {
-    return <SignupPage onSignup={handleSignup} onBackToLogin={handleBackToLogin} />;
-  }
-
-  return <LoginPage onLogin={handleLogin} onSignupClick={handleShowSignup} />;
+  return (
+    <>
+      <SignedIn>
+        <HomePage user={user?.firstName || user?.emailAddresses[0]?.emailAddress?.split('@')[0] || 'User'} />
+      </SignedIn>
+      <SignedOut>
+        <ClerkLoginPage />
+      </SignedOut>
+    </>
+  );
 }
