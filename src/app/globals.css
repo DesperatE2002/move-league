@@ -3,12 +3,6 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
-  
-  /* Accent Colors - Stronger Reds */
-  --accent-red: #e11d48;
-  --accent-red-bright: #ff2d55;
-  --accent-red-dark: #9f1239;
-  --accent-red-darker: #881337;
 }
 
 @theme inline {
@@ -32,7 +26,7 @@
 }
 
 body {
-  background: linear-gradient(135deg, #0f0505 0%, #2a0a0a 25%, #0f0505 50%, #2a0a0a 75%, #0f0505 100%);
+  background: linear-gradient(135deg, #0a0000 0%, #1a0505 25%, #0a0000 50%, #1a0505 75%, #0a0000 100%);
   background-size: 400% 400%;
   animation: gradientShift 15s ease infinite;
   color: var(--foreground);
@@ -54,9 +48,9 @@ body::before {
   width: 100%;
   height: 100%;
   background-image: 
-    radial-gradient(circle at 20% 50%, rgba(225, 29, 72, 0.12) 0%, transparent 50%),
-    radial-gradient(circle at 80% 80%, rgba(225, 29, 72, 0.12) 0%, transparent 50%),
-    radial-gradient(circle at 40% 20%, rgba(225, 29, 72, 0.08) 0%, transparent 50%);
+    radial-gradient(circle at 20% 50%, rgba(220, 38, 38, 0.08) 0%, transparent 50%),
+    radial-gradient(circle at 80% 80%, rgba(220, 38, 38, 0.08) 0%, transparent 50%),
+    radial-gradient(circle at 40% 20%, rgba(220, 38, 38, 0.05) 0%, transparent 50%);
   pointer-events: none;
   z-index: 0;
 }
@@ -91,7 +85,7 @@ html {
 
 /* Touch-friendly buttons */
 button, a, input, select, textarea {
-  -webkit-tap-highlight-color: rgba(225, 29, 72, 0.3);
+  -webkit-tap-highlight-color: rgba(220, 38, 38, 0.3);
   touch-action: manipulation;
 }
 
@@ -111,12 +105,12 @@ input, select, textarea {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--accent-red);
+  background: rgba(220, 38, 38, 0.5);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--accent-red-bright);
+  background: rgba(220, 38, 38, 0.7);
 }
 
 @keyframes gradientShift {

@@ -67,7 +67,7 @@ const HomePage = ({ user = "Admin" }) => {
 
       console.log('📊 Stats loaded:', {
         battles: battlesRes.data?.battles?.length || battlesRes.data?.length,
-        users: usersRes.data?.users?.length || usersRes.data?.length,
+        users: usersRes.data?.users?.length || usersRes.data?.length || 0,
         workshops: workshopsRes.data?.length,
         competitions: competitionsRes.data?.length
       });

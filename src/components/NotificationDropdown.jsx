@@ -207,7 +207,7 @@ const NotificationDropdown = ({ onBattleClick, onStudioApprovalClick }) => {
           position: absolute;
           top: -5px;
           right: -5px;
-          background: #e11d48;
+          background: #dc2626;
           color: white;
           border-radius: 50%;
           width: 24px;
@@ -282,8 +282,8 @@ const NotificationDropdown = ({ onBattleClick, onStudioApprovalClick }) => {
 
         .mark-all-read {
           padding: 0.5rem 1rem;
-          background: rgba(225, 29, 72, 0.25);
-          border: 1px solid #e11d48;
+          background: rgba(220, 38, 38, 0.2);
+          border: 1px solid #dc2626;
           border-radius: 6px;
           color: #fca5a5;
           font-size: 0.85rem;
@@ -292,7 +292,7 @@ const NotificationDropdown = ({ onBattleClick, onStudioApprovalClick }) => {
         }
 
         .mark-all-read:hover {
-          background: rgba(225, 29, 72, 0.35);
+          background: rgba(220, 38, 38, 0.3);
         }
 
         .notifications-list {
@@ -310,7 +310,7 @@ const NotificationDropdown = ({ onBattleClick, onStudioApprovalClick }) => {
         }
 
         .notifications-list::-webkit-scrollbar-thumb {
-          background: #e11d48;
+          background: #dc2626;
           border-radius: 4px;
         }
 
@@ -340,7 +340,7 @@ const NotificationDropdown = ({ onBattleClick, onStudioApprovalClick }) => {
         }
 
         .notification-item.unread {
-          background: rgba(225, 29, 72, 0.12);
+          background: rgba(220, 38, 38, 0.1);
         }
 
         .notif-icon {
@@ -378,7 +378,7 @@ const NotificationDropdown = ({ onBattleClick, onStudioApprovalClick }) => {
           transform: translateY(-50%);
           width: 10px;
           height: 10px;
-          background: #e11d48;
+          background: #dc2626;
           border-radius: 50%;
         }
 
@@ -394,4 +394,3 @@ const NotificationDropdown = ({ onBattleClick, onStudioApprovalClick }) => {
 };
 
 export default NotificationDropdown;
-
