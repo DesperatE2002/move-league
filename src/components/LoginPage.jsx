@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from 'react';
+import { useSignIn } from '@clerk/nextjs';
 import { authApi } from '@/lib/api-client';
 import ForgotPasswordPage from './ForgotPasswordPage';
 
@@ -10,6 +11,7 @@ import ForgotPasswordPage from './ForgotPasswordPage';
  */
 
 const LoginPage = ({ onLogin, onSignupClick }) => {
+  const { signIn, isLoaded } = useSignIn();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -34,6 +36,23 @@ const LoginPage = ({ onLogin, onSignupClick }) => {
       console.error('❌ Login error:', err);
       setError(err.message || 'Giriş başarısız. Lütfen bilgilerinizi kontrol edin.');
     } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    if (!isLoaded) return;
+    
+    try {
+      setLoading(true);
+      await signIn.authenticateWithRedirect({
+        strategy: 'oauth_google',
+        redirectUrl: '/sso-callback',
+        redirectUrlComplete: '/',
+      });
+    } catch (err) {
+      console.error('Google login error:', err);
+      setError('Google ile giriş sırasında bir hata oluştu.');
       setLoading(false);
     }
   };
@@ -106,7 +125,8 @@ const LoginPage = ({ onLogin, onSignupClick }) => {
               <button 
                 type="button" 
                 className="btn btn-social"
-                onClick={() => alert('🚀 Google ile giriş yakında aktif olacak!')}
+                onClick={handleGoogleLogin}
+                disabled={loading}
                 style={{
                   flex: 1,
                   background: 'rgba(255,255,255,0.05)',
