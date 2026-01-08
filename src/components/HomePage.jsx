@@ -229,14 +229,20 @@ const HomePage = ({ user = "Admin" }) => {
   }
 
   const statsCards = [
-    { label: "Aktif Battle", value: stats.battles.toString(), icon: "⚔️", action: 'active-battles' },
+    // Aktif Battle kartı - Sadece DANCER, STUDIO, ADMIN için
+    ...(currentUser?.role === 'DANCER' || currentUser?.role === 'STUDIO' || currentUser?.role === 'ADMIN' ? [{
+      label: "Aktif Battle", 
+      value: stats.battles.toString(), 
+      icon: "⚔️", 
+      action: 'active-battles'
+    }] : []),
     { label: "Kayıtlı Kullanıcı", value: stats.users.toString(), icon: "💃", action: 'registered-users' },
     { label: "Workshop", value: stats.workshops.toString(), icon: "🎓", action: 'workshops' },
     { label: "Yarışma", value: stats.competitions.toString(), icon: "🏆", action: 'competition' }
   ];
 
   const menuItems = [
-    // Battle - Sadece DANCER için "yeni oluştur" özelliği var
+    // Battle - Sadece DANCER ve STUDIO için
     ...(currentUser?.role === 'DANCER' ? [{
       id: "battles",
       title: "Battle", 
@@ -254,12 +260,12 @@ const HomePage = ({ user = "Admin" }) => {
       color: "#ff2d55",
       badge: null
     }] : []),
-    // REFEREE için Battle Listesi (sadece görüntüleme + puanlama)
-    ...(currentUser?.role === 'REFEREE' ? [{
+    // ADMIN için battle erişimi
+    ...(currentUser?.role === 'ADMIN' ? [{
       id: "battles",
-      title: "Battle Listesi", 
-      desc: "Görevlendirildiğiniz battle'ları görüntüleyin", 
-      icon: "⚖️", 
+      title: "Battle Yönetimi", 
+      desc: "Tüm battle'ları yönet ve hakem ata", 
+      icon: "⚔️", 
       color: "#ff2d55",
       badge: null
     }] : []),
